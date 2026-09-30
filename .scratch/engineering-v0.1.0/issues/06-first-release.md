@@ -2,7 +2,7 @@
 
 Status: todo
 Blocked by: 03            # 等 CI 在 PR 上跑起来、能挡住合并
-Covers: D-09, D-10, D-11 # 覆盖台账里哪些决议
+Covers: D-09, D-10, D-11, D-13 # 覆盖台账里哪些决议（D-13 是 README 的致谢口径，随本版出厂）
 Verify: git tag
 Rounds: -                # 尝试了几轮（指标：一次收敛率）
 Sessions: -              # 跨了几个会话（>1 说明票切大了）
