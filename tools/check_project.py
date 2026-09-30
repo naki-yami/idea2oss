@@ -261,18 +261,37 @@ def main() -> int:
     tickets = [t for t in tickets if t.split("/")[-1].lower() not in ("readme.md",)]
     if tickets:
         heads = {"Status": 0, "Blocked by": 0, "Covers": 0, "Verify": 0, "Rounds": 0, "Sessions": 0}
-        todo_free, covered = [], set()
+        covered, status_of, blocked_by = set(), {}, {}
         for tk in tickets:
             t = read(os.path.join(root, tk))
             for k in heads:
                 if re.search(rf"^{re.escape(k)}\s*:", t, re.M):
                     heads[k] += 1
+            num = re.match(r"^(\d+)", os.path.basename(tk))
             st = re.search(r"^Status\s*:\s*([\w-]+)", t, re.M)
             bl = re.search(r"^Blocked by\s*:\s*([^#\n]*)", t, re.M)
-            if st and bl and st.group(1) in ("todo", "doing") and bl.group(1).strip() in ("-", ""):
-                todo_free.append(tk)
+            if num:
+                if st:
+                    status_of[num.group(1)] = st.group(1).lower()
+                blocked_by[num.group(1)] = [
+                    x.strip() for x in (bl.group(1) if bl else "").split(",")
+                    if x.strip() and x.strip() != "-"]
             for m in re.findall(r"^Covers\s*:\s*([^#\n]*)", t, re.M):
                 covered |= set(re.findall(r"D-\d+", m))
+
+        def _frontier(num):
+            """能立刻开工 = 自己是 todo/doing，且**每一条**前置都已 done。
+
+            前置是否解除要看那张票的 Status，不能只看 `Blocked by:` 里写没写东西——
+            写 `Blocked by: 03` 而 03 早已 done 的票，本来就在 frontier 上。
+            （早期版本只认 `Blocked by: -`，于是 03 一完工，frontier 就假报为空。）
+            """
+            if status_of.get(num) not in ("todo", "doing"):
+                return False
+            return all(status_of.get(b) == "done" for b in blocked_by.get(num, []))
+
+        todo_free = [tk for tk in tickets
+                     if _frontier(os.path.basename(tk).split("-")[0])]
         complete = sum(1 for k, v in heads.items() if v == len(tickets))
         mark("tickets", "票据六行头齐全", heads["Status"] == len(tickets) and complete >= 5,
              f"{len(tickets)} 张票；六行齐全的 {complete}/6 项",

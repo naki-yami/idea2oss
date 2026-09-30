@@ -9,7 +9,7 @@
 |---|---|---|
 | `skills/` | 一个目录一份 `SKILL.md`，frontmatter 三字段 + 八节正文 | 14 步流程的判据、话术、反模式、手工兜底路径 |
 | `templates/` | 35 份可直接复制的文件（33 份为导出物 + 2 份手写件） | 《流程手册》附录 A/B 的全部结构约定 |
-| `tools/` | 三个命令行入口：`install.py` / `validate_skills.py` / `check_project.py` | 安装、技能契约校验、结构判据的机械检查 |
+| `tools/` | 五个命令行入口：`install.py` / `validate_skills.py` / `check_project.py` / `check_licenses.py` / `dump_templates.py` | 安装、技能契约校验、结构判据、依赖许可门禁、模板重放 |
 | `docs/` | 人读的知识层：brief / decisions / adr / architecture / onboarding / agents | 为什么这样做、接手从哪开始 |
 | `.scratch/` | 过程层：spec 与票据 | 一次性工作区，用完归档 |
 
@@ -51,6 +51,6 @@
 ## 与本集技能对应的环节
 
 - 第 1 步「初始化仓库」→ `.gitignore` 四类边界 + `docs/agents/`、`docs/adr/`、`.scratch/` 三个落点
-- 第 2 步「拷问」→ `CONTEXT.md`（术语表）+ `docs/decisions.md`（12 条决议）
+- 第 2 步「拷问」→ `CONTEXT.md`（术语表）+ `docs/decisions.md`（13 条决议）
 - 第 4 步「方案与计划」→ 本文档的接缝清单 + `.scratch/engineering-v0.1.0/issues/` 的票据图
 - 第 6 步「检测」→ `S1` + `S2` 两条命令就是这一票的 `Verify:`

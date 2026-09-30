@@ -20,6 +20,9 @@
   - **Windows 把 `templates/...` 规范化成 `templates` 目录本身**，`os.path.exists` 返回 True——夹具里一处悬空的模板引用被掩盖，本地 17 条测试全绿而 Linux 必红。修夹具 + 校验器显式拦掉纯点号引用
   - 门禁把**解释器自带的 `setuptools`**（Python 3.9 的 runner 上三个许可字段全空）当成"项目依赖未声明"。改为默认忽略 `pip` / `setuptools` / `wheel`，且**忽略不等于看不见**：跑的时候会打出来
 - 响应时限按维护者口径改写：**尽力而为，不承诺时限**（`SECURITY.md` / `CONTRIBUTING.md` / `CODE_OF_CONDUCT.md` 三处一致）——一个人维护的项目不写做不到的承诺
+- **陌生人测试发现的 6 处「文件与事实对不上」全部修掉**（票据 `04`）：`docs/onboarding.md` 让读者去 SECURITY.md 找「7 天 / 30 天」（那里早已改成「尽力而为」）；`CONTRIBUTING.md` 的 clone 地址占位没替换、且仍写着「远端还没接 / tag 是空的 / 分支保护还没配」；另有 frontier、决议条数（12→13）、用例数（11→20）、工具入口数（3/4→5）四处过期
+- `check_project.py` 的 frontier 判定修正：**前置票已 `done` 就算解除**，不再只看 `Blocked by:` 里写没写 `-`（03 一完工，旧逻辑就假报「frontier 为空」）
+- 文档纪律：`docs/onboarding.md` 末尾加一条总则——**表里的数字都会过期，以文件里的实际内容为准**
 
 ### Planned
 
