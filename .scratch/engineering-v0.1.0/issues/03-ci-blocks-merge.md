@@ -46,3 +46,7 @@ Review: -                # 第 6 步填：两轴发现项计数（指标：评�
 
 - 2026-09-30：`ci.yml` 与 `release.yml` 已写好，并在本地跑通了三者的等价命令（12 个测试 OK、技能契约 0 错 0 警、结构体检 28/28）。
 - **本票仍为 todo**：判据是「PR 上自动跑，而且失败会挡住合并」——这需要远端、一个故意失败的 PR、以及平台侧的分支保护，三件都还没做。步骤见 `docs/release-checklist.md`。
+- 2026-09-30（接上远端之后）：
+  - **前半已验完**：`ci` 在 main 上跑绿了（run #7，两个矩阵 job 全过：3.9 用 17s、3.13 用 9s）。绿的代价是三次真红，三次根因都记在 CHANGELOG 里：PEP 639 许可字段、Windows 把 `templates/...` 规范化成目录、门禁把解释器自带的 `setuptools` 当成项目依赖。
+  - **后半卡在账号套餐上**：GitHub Free 的**私有**仓库不支持分支保护——API 原文 `Upgrade to GitHub Pro or make this repository public to enable this feature.`。令牌权限没问题（`admin=true`）。所以「CI 挡住合并」这一条，**要么把仓库转公开（免费），要么升 Pro**，在此之前无法验证。
+  - 故意失败的 PR 已备好分支 `ci-gate-check`（删掉 `decision-ledger` 的 `## 反模式` 一节，本地跑 `validate_skills.py` 确认退出码 1）。开 PR 那一步被令牌权限挡住（fine-grained 没给 `Pull requests: Write`），改由维护者点直链创建。
