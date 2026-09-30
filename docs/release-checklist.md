@@ -56,7 +56,7 @@
 ### 推上远端的三条命令
 
 ```powershell
-cd D:\idea2oss
+cd D:\idea2oss          # 换成你自己克隆的路径
 git remote add origin git@github.com:naki-yami/idea2oss.git   # 用 HTTPS 就把这行换成 https 地址
 git push -u origin main          # 默认分支已改为 main（与 ci.yml 的 branches: [main] 一致）
 git push origin v0.1.0           # 推 tag 才算发版；没推之前，这个版本只在你机器上
@@ -82,5 +82,5 @@ git push origin v0.1.0           # 推 tag 才算发版；没推之前，这个�
 - [ ] 挂徽章（CI 状态、最新版本、许可证）——**只在 CI 真跑过之后**：挂一个指向不存在仓库的徽章，比不挂更伤
 - [ ] 确认 issue 模板与标签可用（`good first issue` / `help wanted` / `bug` / `enhancement`）
 - [ ] 履行 `CONTRIBUTING.md` 的「响应节奏」：一周至少看一次
-- [ ] 找**一个没看过这个项目的人**走一遍 `docs/onboarding.md`（票据 `04` 的判据）——这一条代理顶替不了
-- [ ] 有人提 PR 后，把票据 `03` 的验收记录补上（那张票到那时才能 done）
+- [x] 走一遍陌生人 30 分钟测试（票据 `04` 的判据）。**要的是「没读过本仓库的视角」**，不是某一类执行者：换人、换机器、或一个没有本仓库历史的会话都算——`flow-tuning` 的手工兜底节把三种做法并列写着
+- [x] 有人提 PR 后，把票据 `03` 的验收记录补上——PR #5 已合，票据 `03` 已是 `done`

@@ -29,6 +29,10 @@
 - **活文档里 7 处「与事实相反」的断言改成事实**（`D-14`）：`README.md` 的判据条数（28→29）、自报分数（28/28→29/29）、工具数（四个→五个）；`SECURITY.md` 的「远端还没接」「`git tag` 为空」「四个脚本」；`docs/agents/domain.md` 的决议区间（D-12→D-13）。这 7 处是人肉测不出来的那一类——第 13 项一上线就当场报了出来
 - `D-14` 之后跟着飘的几处数字已同步：`README.md` 目录树、`docs/agents/domain.md` 的编号区间、`docs/architecture.md` 的决议条数、`docs/onboarding.md` 的编号区间与票数——是这项判据报出来的，不是人找的
 - `README.md` 说测试「挂在 S1 / S2 / S3 三个接缝上」，而 `S6` 一进仓库就带了 5 条测试——这处机器查不出（测试挂没挂在接缝上要人判断），顺手改对
+- **同一处漏在 `.github/PULL_REQUEST_TEMPLATE.md` 里**：它的自查清单还写着「S1 / S2 / S3 三个接缝」。上一行只修了 `README.md`——同一句话在仓库里有两处，改一处不等于改完
+- 又一轮「文件与事实对不上」，这次是照 `docs/onboarding.md` 走一遍抓的：`CONTRIBUTING.md` 的体检项数（28→29）、用例数（20→30）、分支保护（「还没配」→已配）、D-11（「英文版还没做」→已做）、产物校验（「没人真走过」→走过，附实测 sha256）；`README.md` 目录树的「此刻还没有 release」；`docs/agents/issue-tracker.md` 的「本仓库目前没有远端」；`docs/agents/triage-labels.md` 的「还没有对接平台标签」（平台上是默认标签集，五个自定义名没建）；票据 `06` 的 `Status`（`todo`→`done`，远端与产物都已核过）
+- `docs/onboarding.md` 18–22 那一格写过两个互相打架的 frontier 定义：前半句是「`Status: todo` 且每条前置都已 `done`」，后半句又退回「没有一张 `Blocked by: -` 的票」——后者正是票据 `04` 从 `check_project.py` 里删掉的旧口径。现在只留一个定义，并补上第三种原因：**票全做完了**，那不是缺陷
+- `docs/release-checklist.md` 的「转公开之后的第一周」里，两条早已完成的待办补上勾（陌生人测试、票据 `03` 的验收记录）；推远端的命令块补上「换成你自己克隆的路径」——`GUIDE.md` 那次已经补过，这里漏了
 
 ### Planned
 

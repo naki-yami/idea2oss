@@ -5,7 +5,7 @@
 ## 自查（提 PR 前逐条跑过，把结果贴上来）
 
 - [ ] `python tools/validate_skills.py` → 退出码 0（改过 `skills/` 就必跑：frontmatter、八节骨架、交叉引用、模板存在性）
-- [ ] `python -m unittest discover -s tests` → OK（改过 `tools/` 就必跑：S1 / S2 / S3 三个接缝）
+- [ ] `python -m unittest discover -s tests` → OK（改过 `tools/` 就必跑：S1 / S2 / S3 / S6 四个接缝）
 - [ ] `python tools/check_project.py --dir . --level L2 --quiet` → 没有新增缺失项（改过仓库结构就必跑）
 - [ ] 没动 `templates/` 的结构约定；动了就说明为什么（模板是导出物，事实来源在生成器，见 D-08）
 

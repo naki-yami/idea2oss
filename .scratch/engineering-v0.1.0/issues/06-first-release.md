@@ -1,13 +1,13 @@
 # 06 发第一个版本
 
-Status: todo
-Blocked by: 03            # 等 CI 在 PR 上跑起来、能挡住合并
+Status: done
+Blocked by: 03            # 03 已 done
 Covers: D-09, D-10, D-11, D-13 # 覆盖台账里哪些决议（D-13 是 README 的致谢口径，随本版出厂）
 Verify: git tag
-Rounds: -                # 尝试了几轮（指标：一次收敛率）
-Sessions: -              # 跨了几个会话（>1 说明票切大了）
-Accept: -                # 第 6 步填：你亲手跑一遍后的 通过/不通过 + 原因
-Review: -                # 第 6 步填：两轴发现项计数（指标：评审返工）
+Rounds: 1                # 尝试了几轮：发版本体一次到位，多出来的一轮是补远端与产物的证据
+Sessions: 2              # 跨了几个会话：打 tag 一轮；接远端之后的核对与产物校验一轮
+Accept: 通过 —— 2026-09-30 实跑核对（远端 + 产物，逐条对「怎么算做完」）：① `gh api .../tags` 有 `v0.1.0`，release 也在（有发布说明、非 draft）；② release 挂着 `v0.1.0.tar.gz` + `SHA256SUMS.txt`，下载后 sha256 对得上（`ef5b03dd…82d2`），包里 14 份 `SKILL.md` 齐；③ 在 tag 那份代码上 `python tools/install.py --list` → 退出码 0；④ `CHANGELOG.md` 有 `[0.1.0] - 2026-09-30` 段；⑤ 体检的「CHANGELOG 存在」「CONTRIBUTING + SECURITY 都在」「LICENSE 三处一致」全 `[x]`（29/29）。命令原文见本票 Comments 段——本行是照那些输出填的，不是打勾
+Review: 2 项，都已处理 —— ① 判据里「D-11 的处置写进发布记录：本期不做英文版技能正文」在 D-11 真做了之后作废（英文伴随件已进仓库）：发布记录是快照，不回头改，只标注；② `README.md` 的目录树还写着「此刻还没有 release」——收尾时才抓到，已改，并顺手让它落进第 13 项判据的覆盖范围
 
 ## 要什么
 
@@ -46,3 +46,10 @@ Review: -                # 第 6 步填：两轴发现项计数（指标：评�
 
 - 2026-09-30：`CHANGELOG.md` 的 `[Unreleased]` 已切成 `[0.1.0] - 2026-09-30`；本地 tag `v0.1.0` 已打（`git tag` 可验）。
 - **本票仍为 todo**：判据是「使用者拿到一个有版本号的仓库」，本地 tag 不算数——推 tag、发 release 要等 `03`（CI 在真实 PR 上验证过）之后由维护者做。剩余步骤见 `docs/release-checklist.md`。
+- **2026-09-30 收尾核对：上面那条已经过期了——推 tag、发 release 都做完了。** 逐条实跑（不是打勾）：
+  - `gh api repos/naki-yami/idea2oss/tags` → `v0.1.0`；`.../releases` → 一条 `v0.1.0`，有发布说明、非 draft，产物两个：`v0.1.0.tar.gz`、`SHA256SUMS.txt`。
+  - `gh release download v0.1.0` 之后 `Get-FileHash -Algorithm SHA256 .\v0.1.0.tar.gz` → `ef5b03dd8fd7bd6cf88904cc61f63401e575c9b18230861586c1a4b6338182d2`，与 `SHA256SUMS.txt` 里那一行逐字符相同；包里 125 项、14 份 `SKILL.md`。
+  - 把包解开，在解出来的 `v0.1.0/` 里跑 `python tools/install.py --list --target <一个空目录>` → 退出码 0，打印「（目录不存在，尚未安装）」。
+  - `release.yml` 在打 tag 时跑过一次并成功（run `2026-09-30T08:57:38Z`）。
+  - 所以「有 tag、有发布说明、有对应的 CHANGELOG 段落」三条都成立，本票改 `done`。
+- 2026-09-30：判据里那条「D-11 的处置写进发布记录：本期不做英文版技能正文」在 D-11 真做了之后作废（英文伴随件已进仓库）。**发布记录是快照，不回头改**，只在这里标注。

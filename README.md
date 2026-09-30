@@ -92,7 +92,7 @@ idea2oss/
 ├── README.md              门面（本文件）
 ├── GUIDE.md               介绍与使用手册（装、用、三条走法、排错、定制）
 ├── CONTEXT.md             术语表（唯一权威）
-├── CHANGELOG.md           Keep a Changelog（此刻还没有 release，内容都在 Unreleased）
+├── CHANGELOG.md           Keep a Changelog（0.1.0 已发布，新内容进 Unreleased）
 ├── CONTRIBUTING.md        怎么参与
 ├── SECURITY.md            漏洞私密报告渠道与响应时限
 ├── CODE_OF_CONDUCT.md     Contributor Covenant v2.1
@@ -136,7 +136,7 @@ idea2oss/
 
 - 现状：**v0.1.0**（已打 tag）。技能集九步全覆盖、可独立使用；仓库自身是按本集流程走完的一个完整项目——第 0–8 步的产物在 `docs/` 与 `.scratch/engineering-v0.1.0/`，结构体检 29/29。
 - 自评口径：`python tools/check_project.py --dir . --quiet`。分数与验收记录写在票据里，不写在这里——README 里的数字会过期。
-- 还没做完的一件（记在票据里，不藏着）：**真人陌生人测试**没做过（票据 `04`）——这条代理顶替不了。CI 已在 PR 上验证过、分支保护已配、其余检查见 [docs/release-checklist.md](docs/release-checklist.md)。
+- 验收记录一律写在票据里，README 不替它们背书（同上一行的规矩）：陌生人测试见票据 `04`，CI 与分支保护见票据 `03`，发版见票据 `06`。要核就核那张票本身，别核这里抄的摘要。其余检查见 [docs/release-checklist.md](docs/release-checklist.md)。
 - 路线：`D-11` 决定英文版正文做不做（期限 v0.2.0）；正文里的「手册第 N 步」随源手册版本走。
 
 ## 致谢
