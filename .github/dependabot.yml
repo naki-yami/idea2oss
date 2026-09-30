@@ -1,0 +1,35 @@
+# idea2oss ｜ 结构照 templates/dependabot.yml，内容按本项目改
+#
+# 8.4 ｜ 判据：依赖升级与漏洞告警，且把告警当 issue 处理
+#
+# 为什么只有 github-actions 这一项：
+#   - 本项目零第三方依赖（D-06）：[project].dependencies 是空表，没有 requirements.txt，
+#     tools/ 只用标准库。配一个 pip 生态等于让它每月对着空清单空转，只会产出噪音。
+#   - 真正会过期的"依赖"是三处外部的动作与运行时：
+#       · .github/workflows/ 里的 actions/checkout、actions/setup-python、
+#         softprops/action-gh-release —— 归 github-actions 生态管；
+#       · CI 里临时装的 pip-licenses —— 它属于可抛弃的门禁工具，且每次 CI 都重装，
+#         不需要版本跟踪；
+#       · 解释器版本矩阵（3.9 / 3.13）—— Dependabot 管不了，由人按 EOL 时间表复核。
+#   - 将来真加了依赖（要先改 D-06，那是要写理由的），就在这里补一条 pip 生态：
+#       - package-ecosystem: pip
+#         directory: "/"
+#         schedule:
+#           interval: monthly
+#
+# 安全告警（Dependabot alerts）在仓库 Settings → Code security 里开，不写在这个文件里。
+# 告警当 issue 处理：开出来就贴 needs-triage 标签，按 triage 流程走，别堆在安全页里没人看。
+
+version: 2
+
+updates:
+  # GitHub Actions：每月一次小版本升级；安全告警即时处理
+  - package-ecosystem: github-actions
+    directory: "/"              # 扫 .github/workflows/ 下的 uses:
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"              # 一眼看出这是流水线改动，不是技能正文改动
+    labels:
+      - needs-triage            # 与 issue 模板同一套标签：进来就先分诊

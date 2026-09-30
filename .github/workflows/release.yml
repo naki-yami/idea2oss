@@ -1,0 +1,83 @@
+# idea2oss · 发布流水线
+# 结构照 templates/release.yml，内容按本项目改。
+#
+# 判据（8.4 / D-10）：打 tag 触发，产物能被下载的人校验来源（源码包 + SHA256），
+# 发布正文取自 CHANGELOG 的对应段落——正文与仓库里的记录是同一份，不许两处写。
+#
+# 本项目是技能集 + 脚本，没有构建产物：源码包本身就是发行物。
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write            # 建 release 要写权限；其余一律不给
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0       # 归档与 CHANGELOG 摘取都在 tag 指向的那次提交上做
+
+      # ---- 1. 源码包：git archive 只打被 git 跟踪的文件，天然排除 .venv / .env / 本机残留 ----
+      - name: 生成源码包（git archive）
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME}"
+          # 顶层目录名用仓库名，解压后不会散落一地
+          git archive --format=tar.gz --prefix="${GITHUB_REF_NAME}/" \
+            --output="${version}.tar.gz" "${GITHUB_REF_NAME}"
+          ls -lh "${version}.tar.gz"
+
+      # ---- 2. 校验文件：下载的人能验证来源（sha256sum -c 直接可用）----
+      - name: 生成校验文件（sha256sum）
+        run: |
+          set -euo pipefail
+          sha256sum "${GITHUB_REF_NAME}.tar.gz" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      # ---- 3. 发布正文：从 CHANGELOG 摘本版本段落，摘不到就失败（D-10：日志纪律是硬要求）----
+      - name: 从 CHANGELOG 摘出本版本段落
+        run: |
+          set -euo pipefail
+          # 从 tag 指向的那次提交取，不用工作区文件：正文与标签指向的版本严格一致
+          git show "${GITHUB_REF_NAME}:CHANGELOG.md" > CHANGELOG.md
+          python - <<'PY'
+          import os
+          import re
+          import sys
+
+          version = os.environ["GITHUB_REF_NAME"].lstrip("v")
+          text = open("CHANGELOG.md", encoding="utf-8").read()
+          # 匹配 "## [0.1.0] - 2026-09-30" 或 "## [0.1.0]"；不匹配 [Unreleased]
+          pattern = re.compile(r"^##\s*\[" + re.escape(version) + r"\](.*)$", re.M)
+          matches = list(pattern.finditer(text))
+          if len(matches) != 1:
+              sys.exit(
+                  f"CHANGELOG.md 里 [{version}] 段落有 {len(matches)} 个——"
+                  "版本号必须唯一，重复的合并成一段再打 tag（D-10）"
+              )
+          start = matches[0]
+          rest = text[start.end():]
+          nxt = re.search(r"^##\s", rest, re.M)
+          body = rest[: nxt.start()] if nxt else rest
+          notes = f"## [{version}]{start.group(1)}\n{body}".strip() + "\n"
+          with open("RELEASE_NOTES.md", "w", encoding="utf-8") as fh:
+              fh.write(notes)
+          print(notes)
+          PY
+
+      # ---- 4. 建 release 并挂上产物 ----
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            ${{ github.ref_name }}.tar.gz
+            SHA256SUMS.txt
+          generate_release_notes: false   # 正文只认 CHANGELOG，不让平台再拼一份
+          draft: false
+          prerelease: false               # 预发布请用 v0.1.0-rc.1 这类 tag，并在 CHANGELOG 单列一段

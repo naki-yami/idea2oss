@@ -1,0 +1,99 @@
+# idea2oss · CI 质量门
+# 结构照 templates/ci.yml，内容按本项目改：本项目零第三方依赖（D-06），
+# 所以"安装依赖"这一步不存在，门禁全落在标准库与本仓库自己的工具上。
+#
+# 判据（附录 B4）：别人提 PR 时自动跑，失败挡住合并——后者要在 GitHub 上配分支保护，
+# 配了才算数，工作流本身配不出来（README「限制」里写明这条要人做）。
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 同一分支连续推两次时，取消上一次还没跑完的：省时间，也省得看两份过期结果
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false            # 一个版本红不代表另一个也红，两个结果都要看到
+      matrix:
+        # 只留真正支持的两个版本：下限 3.8（requires-python）与当前在用版本。
+        # 3.9 是 pyproject.toml 声明的最低支持线在 CI 上的代表（≤3.8 的 GitHub 托管
+        # runner 已下线，本地仍按 3.8 语法写），3.13 是开发机在跑的那个。
+        python-version: ['3.9', '3.13']
+
+    env:
+      # Windows 上本地跑同一套命令时靠它避免 GBK 乱码；CI 上显式写出来保持一致
+      PYTHONUTF8: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # 本项目的依赖矩阵是一行空表（D-06）：没有任何 pip install。
+      # 哪个 PR 往 [project].dependencies 里加了东西，下面这几步会在干净环境里红。
+      - name: 环境自述
+        run: |
+          python --version
+          python -c "import sys; print('零第三方依赖，解释器：', sys.executable)"
+
+      # 接缝测试（S1 / S2 / S3）：通过命令行断言退出码与输出关键词
+      - name: 跑测试
+        run: python -m unittest discover -s tests -v
+
+      # S1：技能契约必须成立
+      - name: 校验技能集（S1）
+        run: python tools/validate_skills.py
+
+      # S2：结构判据。失败退出码 1，直接挡合并。
+      # 这一项对仓库当前状态是真实的分数——本项目自己定的标准，自己得先过上。
+      - name: 结构体检（S2 · L2）
+        run: python tools/check_project.py --dir . --level L2 --quiet
+
+      # D-12：依赖许可检查进 CI。
+      # 本项目零依赖，这一步必然绿——这是有意的：门禁要先立起来，
+      # 等真有人加了依赖，它已经在挡着了，而不是那时候才想起来配。
+      # pip-licenses 是这条门禁自己的工具，不进 [project].dependencies（它不算项目依赖）。
+      - name: 依赖许可检查（D-12）
+        run: |
+          python -m pip install --quiet 'pip-licenses>=4,<6'
+          echo "—— 本环境已装包的许可清单 ——"
+          # 用文件传结果，不用管道喂 stdin：heredoc 会接管 stdin，管道里的 JSON 就到不了判断脚本
+          python -m piplicenses --format=json > licenses.json
+          python -m piplicenses --format=markdown --with-urls
+          echo "—— 逐条判定 ——"
+          python - <<'PY'
+          import json
+
+          banned = ("GPL", "AGPL", "UNKNOWN")
+          with open("licenses.json", encoding="utf-8") as fh:
+              rows = json.load(fh)
+          if not rows:
+              # 一个包都没扫到，说明扫描本身没跑起来（环境不对/工具不可用），
+              # 不能当成"没有 GPL 依赖"放过去
+              raise SystemExit("piplicenses 没有扫到任何包——门禁没跑成，按失败处理")
+          bad = []
+          for row in rows:
+              lic = str(row.get("License", "")).upper()
+              name = row.get("Name", "?")
+              if any(b in lic for b in banned) or not lic.strip():
+                  bad.append(f"{name}  ->  {row.get('License', '（空）')}")
+          print(f"扫描到 {len(rows)} 个已安装包")
+          if bad:
+              print("以下依赖的许可需要单独评估（GPL / AGPL / 未知）：")
+              for line in bad:
+                  print("  ✗ " + line)
+              raise SystemExit(1)
+          print("没有 GPL / AGPL / UNKNOWN 依赖。")
+          PY
