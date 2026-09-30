@@ -29,6 +29,9 @@ Thumbs.db
 .vscode/
 *.local
 
+# 代理运行时把技能装进项目时的落点（tools/install.py --target <项目>）
+.dsh/
+
 # 密钥（提交前扫一眼 git status 里有没有这些）
 .env
 .env.*
