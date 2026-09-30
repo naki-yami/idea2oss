@@ -134,7 +134,7 @@ idea2oss/
 
 - 现状：**v0.1.0**（已打 tag）。技能集九步全覆盖、可独立使用；仓库自身是按本集流程走完的一个完整项目——第 0–8 步的产物在 `docs/` 与 `.scratch/engineering-v0.1.0/`，结构体检 28/28。
 - 自评口径：`python tools/check_project.py --dir . --quiet`。分数与验收记录写在票据里，不写在这里——README 里的数字会过期。
-- 还没做完的三件（都记在票据里，不藏着）：CI 未在真实 PR 上验证过（`03`）、真人陌生人测试没做过（`04`）、分支保护未配。发布前的剩余清单见 [docs/release-checklist.md](docs/release-checklist.md)。
+- 还没做完的一件（记在票据里，不藏着）：**真人陌生人测试**没做过（票据 `04`）——这条代理顶替不了。CI 已在 PR 上验证过、分支保护已配、其余检查见 [docs/release-checklist.md](docs/release-checklist.md)。
 - 路线：`D-11` 决定英文版正文做不做（期限 v0.2.0）；正文里的「手册第 N 步」随源手册版本走。
 
 ## 致谢
