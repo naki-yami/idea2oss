@@ -62,38 +62,11 @@ jobs:
         run: python tools/check_project.py --dir . --level L2 --quiet
 
       # D-12：依赖许可检查进 CI。
-      # 本项目零依赖，这一步必然绿——这是有意的：门禁要先立起来，
-      # 等真有人加了依赖，它已经在挡着了，而不是那时候才想起来配。
-      # pip-licenses 是这条门禁自己的工具，不进 [project].dependencies（它不算项目依赖）。
+      # 用仓库自己的工具（标准库实现，符合 D-06），**不装 pip-licenses**：
+      # 后者读的是包元数据的旧字段 `License:`，而按 PEP 639 发布的新包把许可写在
+      # `License-Expression:` 里——它一行都判不出来，直接输出空清单，把门禁卡死。
+      # ci #1–#5 全红就是这个原因，详细结论记在 tools/check_licenses.py 的模块注释里。
+      # 这个门禁扫的是「当前解释器环境」：CI 的 runner 环境是干净的（只有 pip / setuptools），
+      # 所以它只会因为项目真拉了 GPL 依赖才红。
       - name: 依赖许可检查（D-12）
-        run: |
-          python -m pip install --quiet 'pip-licenses>=4,<6'
-          echo "—— 本环境已装包的许可清单 ——"
-          # 用文件传结果，不用管道喂 stdin：heredoc 会接管 stdin，管道里的 JSON 就到不了判断脚本
-          python -m piplicenses --format=json > licenses.json
-          python -m piplicenses --format=markdown --with-urls
-          echo "—— 逐条判定 ——"
-          python - <<'PY'
-          import json
-
-          banned = ("GPL", "AGPL", "UNKNOWN")
-          with open("licenses.json", encoding="utf-8") as fh:
-              rows = json.load(fh)
-          if not rows:
-              # 一个包都没扫到，说明扫描本身没跑起来（环境不对/工具不可用），
-              # 不能当成"没有 GPL 依赖"放过去
-              raise SystemExit("piplicenses 没有扫到任何包——门禁没跑成，按失败处理")
-          bad = []
-          for row in rows:
-              lic = str(row.get("License", "")).upper()
-              name = row.get("Name", "?")
-              if any(b in lic for b in banned) or not lic.strip():
-                  bad.append(f"{name}  ->  {row.get('License', '（空）')}")
-          print(f"扫描到 {len(rows)} 个已安装包")
-          if bad:
-              print("以下依赖的许可需要单独评估（GPL / AGPL / 未知）：")
-              for line in bad:
-                  print("  ✗ " + line)
-              raise SystemExit(1)
-          print("没有 GPL / AGPL / UNKNOWN 依赖。")
-          PY
+        run: python tools/check_licenses.py

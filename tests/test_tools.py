@@ -351,5 +351,62 @@ class S3Install(unittest.TestCase):
             self.assertTrue(sorted(os.listdir(root)), "装是装上了，但一个技能都没有")
 
 
+class S6Licenses(unittest.TestCase):
+    """S6：依赖许可门禁。用固定报告当输入，断言退出码——不扫真实环境，避免受本机影响。
+
+    这条接缝是 CI 全红之后才长出来的：原来判断逻辑写在 ci.yml 的 heredoc 里，
+    本地复现不了、测试覆盖不到，红了只能看日志猜。
+    """
+
+    def _report(self, tmp, rows):
+        path = os.path.join(tmp, "licenses.json")
+        with open(path, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(rows)
+        return path
+
+    def test_clean_report_passes(self):
+        """只有宽松许可 → 0。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._report(tmp, '[{"Name":"a","License":"MIT"},{"Name":"b","License":"BSD-3-Clause"}]')
+            code, out = run_tool(os.path.join(TOOLS, "check_licenses.py"), "--report", path)
+            self.assertEqual(code, 0, f"干净的许可清单被判失败：\n{out}")
+            self.assertIn("没有 GPL", out)
+
+    def test_gpl_report_fails(self):
+        """GPL / AGPL → 1，并且把包名打出来。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._report(tmp, '[{"Name":"some-gpl-lib","License":"GPL-3.0"}]')
+            code, out = run_tool(os.path.join(TOOLS, "check_licenses.py"), "--report", path)
+            self.assertEqual(code, 1, f"GPL 依赖竟然放过去了：\n{out}")
+            self.assertIn("some-gpl-lib", out)
+
+    def test_undeclared_license_fails(self):
+        """许可为空 → 1（按"未声明"处理，不是"没问题"）。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._report(tmp, '[{"Name":"mystery","License":""}]')
+            code, out = run_tool(os.path.join(TOOLS, "check_licenses.py"), "--report", path)
+            self.assertEqual(code, 1, f"未声明许可被放过去了：\n{out}")
+
+    def test_empty_report_fails_loudly(self):
+        """空报告 → 1，且说明是"扫描没工作"，不是"没有违规依赖"。
+
+        这一条对应本仓库真实踩过的坑：CI 里 pip-licenses 输出空清单，
+        老写法只丢一句"失败"，看不出到底为什么。
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._report(tmp, "[]")
+            code, out = run_tool(os.path.join(TOOLS, "check_licenses.py"), "--report", path)
+            self.assertEqual(code, 1, "空报告竟然判通过")
+            self.assertIn("0 个包", out)
+
+    def test_malformed_report_fails(self):
+        """报告不是 JSON → 1，不能把解析失败当通过。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._report(tmp, "这不是 JSON")
+            code, out = run_tool(os.path.join(TOOLS, "check_licenses.py"), "--report", path)
+            self.assertEqual(code, 1, "坏报告竟然判通过")
+            self.assertIn("JSON", out)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -25,3 +25,6 @@ Thumbs.db
 *.pem
 *.key
 credentials.json
+
+# 许可门禁生成的报告（CI 里现生成现用）
+licenses.json
