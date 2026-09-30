@@ -67,7 +67,8 @@ def make_junction(src, dst):
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--target", default=DEFAULT_TARGET, help="项目目录（技能装到 <target>\\.dsh\\skills）")
+    ap.add_argument("--target", default=DEFAULT_TARGET,
+                    help="项目目录（技能装到 <target>\\.dsh\\skills）；默认当前工作目录")
     ap.add_argument("--link", action="store_true", help="建目录联接而不是复制")
     ap.add_argument("--force", action="store_true", help="覆盖已存在的技能")
     ap.add_argument("--list", action="store_true", help="只列出目标目录里已装的技能")
@@ -75,8 +76,13 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    root = dest_root(args.target)
+    target = args.target or os.getcwd()
+    root = dest_root(target)
     names = skill_names()
+
+    if os.path.abspath(target) == REPO and not args.list:
+        print("提示：目标就是技能仓库自己。技能一般该装到你正在开发的项目里——")
+        print("      要装到别处请加 --target <项目目录>。（这次仍会照做，只是提醒一下。）")
 
     if args.list:
         print(f"目标：{root}")

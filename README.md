@@ -19,8 +19,11 @@
 ## 30 秒上手
 
 ```bash
-# 1. 装（默认装到 D:\dsh 的工作区技能目录；换项目用 --target）
-python tools/install.py --link
+# 1. 装到「你正在开发的项目」里（技能会落到 <项目>\.dsh\skills\）
+python tools/install.py --target "D:\projects\我的项目"
+
+# 开发这套技能本身时才用 --link（目录联接，改源码立即生效，不用重装）
+python tools/install.py --link --target "D:\projects\我的项目"
 
 # 2. 新开一个会话（技能目录在会话启动时扫描）
 
@@ -30,7 +33,7 @@ python tools/install.py --link
 > 这个 bug 修了两次还没好
 ```
 
-`--link` 用目录联接，改技能源码立即生效；不带 `--link` 是复制一份。`python tools/install.py --list` 看装了哪些。
+不带 `--target` 时装到**当前目录**；`python tools/install.py --list` 看装了哪些。（别把它装进 clone 下来的仓库里——那只会让这个仓库多一个没人用的目录。）
 
 ## 技能表
 

@@ -16,6 +16,7 @@ Thumbs.db
 .idea/
 .vscode/
 *.local
+.dsh/          # 技能装到哪就落在哪；在自己仓库里试装一次不该弄脏工作区
 
 # 密钥
 .env

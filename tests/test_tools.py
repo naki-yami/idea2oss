@@ -336,6 +336,20 @@ class S3Install(unittest.TestCase):
                     os.path.isfile(os.path.join(root, name, "SKILL.md")),
                     f"{name} 没装上 SKILL.md")
 
+    def test_default_target_is_cwd(self):
+        """不带 --target 时必须装到当前工作目录——README 的第一条命令就是它。
+
+        这条是补出来的回归测试：`DEFAULT_TARGET` 曾经被改成 None，而 main() 忘了兜底，
+        结果 README 的第一条命令直接抛 TypeError。抓到它的是陌生人测试（干净克隆照 README 做），
+        不是单元测试——这就是为什么第 8 步的判据是"陌生人 30 分钟"，而不是"测试全绿"。
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out = run_tool(os.path.join(TOOLS, "install.py"), cwd=tmp)
+            self.assertEqual(code, 0, f"不带 --target 时返回了 {code}：\n{out}")
+            root = os.path.join(tmp, ".dsh", "skills")
+            self.assertTrue(os.path.isdir(root), f"没装到当前工作目录：{root}")
+            self.assertTrue(sorted(os.listdir(root)), "装是装上了，但一个技能都没有")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
