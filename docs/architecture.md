@@ -7,7 +7,7 @@
 
 | 模块 | 接口（外面看进去的那一面） | 深度（藏在接口后面的是什么） |
 |---|---|---|
-| `skills/` | 一个目录一份 `SKILL.md`，frontmatter 三字段 + 八节正文 | 14 步流程的判据、话术、反模式、手工兜底路径 |
+| `skills/` | 一个目录一份 `SKILL.md`（中文正文），另附 `references/en.md` 英文伴随件；两边的八节同构，frontmatter 三字段 | 14 步流程的判据、话术、反模式、手工兜底路径 |
 | `templates/` | 35 份可直接复制的文件（33 份为导出物 + 2 份手写件） | 《流程手册》附录 A/B 的全部结构约定 |
 | `tools/` | 五个命令行入口：`install.py` / `validate_skills.py` / `check_project.py` / `check_licenses.py` / `dump_templates.py` | 安装、技能契约校验、结构判据、依赖许可门禁、模板重放 |
 | `docs/` | 人读的知识层：brief / decisions / adr / architecture / onboarding / agents | 为什么这样做、接手从哪开始 |

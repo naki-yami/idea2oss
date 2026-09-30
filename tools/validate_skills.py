@@ -22,6 +22,30 @@ import os
 import re
 import sys
 
+# D-11：英文伴随件的术语统一。左边是唯一允许的写法，右边是禁止的变体。
+# 为什么单列一张表：这批英文件由多个人并行写，风格漂移发生在同义词上——
+# 「go up a level」被写成「go up one level」，「decision ledger」被写成「decision log」。
+# 靠人眼审 14 份文件不现实，靠这条检查顺手就守住了。
+EN_TERMS = {
+    "go up a level": ["go up one level", "move up one level", "step up one level"],
+    "decision ledger": ["decision log", "decisions log"],
+    "the stranger-in-30-minutes test": ["30-minute stranger test", "stranger 30-minute test"],
+    "manual fallback": ["manual workaround"],
+    "one ticket, one session": ["one ticket one session"],
+}
+
+# D-11：每个技能的英文伴随件必须八节齐全（英文标题，与 SKILL.md 的中文八节一一对应）
+EN_SECTIONS = [
+    "## When to use / when not to",
+    "## Inputs",
+    "## Actions",
+    "## Outputs",
+    "## Done criteria",
+    "## Manual fallback",
+    "## Next step",
+    "## Anti-patterns",
+]
+
 SECTIONS = [
     "## 何时用 / 何时不用",
     "## 输入（开工前必须到手的）",
@@ -143,6 +167,24 @@ def main() -> int:
                 continue
             if not os.path.exists(os.path.join(templates_dir, tpl)):
                 errors.append(f"{rel}: 引用了不存在的模板 templates/{tpl}")
+
+        # D-11：英文伴随件。SKILL.md 是中文，非中文使用者读 references/en.md。
+        en_path = os.path.join(skills_dir, name, "references", "en.md")
+        if not os.path.exists(en_path):
+            errors.append(f"skills/{name}/references/en.md: 缺英文伴随件（D-11）")
+        else:
+            with open(en_path, encoding="utf-8") as fh:
+                en_text = fh.read()
+            for sec in EN_SECTIONS:
+                if sec not in en_text:
+                    errors.append(f"skills/{name}/references/en.md: 缺小节 {sec}")
+            lowered = en_text.lower()
+            for canonical, banned in EN_TERMS.items():
+                for bad in banned:
+                    if bad.lower() in lowered:
+                        errors.append(
+                            f"skills/{name}/references/en.md: 术语不统一——写成了「{bad}」，"
+                            f"应为「{canonical}」")
 
     for name in names:
         if name == ENTRY_SKILL:
