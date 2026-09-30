@@ -12,7 +12,7 @@
 
 ## 映射冲突
 
-本仓库还没有对接平台标签，先按默认五个名字走。将来接 GitHub 时，如果平台已经存在 `bug:triage` 这类词，在 `docs/agents/issue-tracker.md` 里改掉映射——否则 triage 会重复创建标签。
+平台上的标签还是 GitHub 默认那套（`bug` / `enhancement` / `wontfix` …），本仓库上面这五个名字**没有在平台上建**。要用就自己建，建之前先对一遍默认集：`wontfix` 两边都有且含义一致，可以直接用；另外四个是本项目自定义的，直接用不会撞车。带冒号的写法（`bug:triage`）平台建不出来，要映射就改在 `docs/agents/issue-tracker.md` 里，否则 triage 会重复创建标签。
 
 ## 一条已知坑（与本集技能直接相关）
 
