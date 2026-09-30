@@ -81,7 +81,7 @@ python tools/check_project.py --dir . --quiet       # 只看没过的
 python tools/check_project.py --dir . --json        # 给 CI 用
 ```
 
-它检查 28 项：README 成段、`.gitignore` 四类边界、LICENSE 三处一致、`CONTEXT.md` 非空、台账四列、票据六行头、**frontier 非空**、**决议覆盖率**、接缝清单、CI、密钥、交接文档没进仓库……有强制项未通过时退出码为 1——可以直接当第 6 / 8 步的 `Verify:` 命令或 CI 门禁。
+它检查 29 项：README 成段、`.gitignore` 四类边界、LICENSE 三处一致、`CONTEXT.md` 非空、台账四列、票据六行头、**frontier 非空**、**决议覆盖率**、**活文档里没有与事实相反的断言**、接缝清单、CI、密钥、交接文档没进仓库……有强制项未通过时退出码为 1——可以直接当第 6 / 8 步的 `Verify:` 命令或 CI 门禁。
 
 **它查不了的**（这部分只能人来）：测试是不是真挂在接缝上、文档是不是你要的、产品验收、陌生人 30 分钟测试、CI 是否真的挡住了合并。
 
@@ -105,13 +105,13 @@ idea2oss/
 ├── docs/                  知识层（接手者从这里进）
 │   ├── onboarding.md      30 分钟接手路径
 │   ├── architecture.md    模块与接缝清单 S1–S6
-│   ├── decisions.md       决议台账 D-01…D-13
+│   ├── decisions.md       决议台账 D-01…D-14
 │   ├── adr/               0001–0003 三条架构决策
 │   └── agents/            brief / issue-tracker / triage-labels / domain
 ├── .scratch/              过程层
 │   ├── skill-contract.md  技能编写契约
 │   └── engineering-v0.1.0/  本次的 spec 与票据图
-├── tests/                 挂在 S1 / S2 / S3 三个接缝上的 unittest
+├── tests/                 挂在 S1 / S2 / S3 / S6 四个接缝上的 unittest
 ├── tools/                 五个命令行入口（install / validate / check / licenses / dump）
 └── .github/               CI、release、PR 与 issue 模板、CODEOWNERS、dependabot
 ```
@@ -134,7 +134,7 @@ idea2oss/
 
 ## 现状与路线
 
-- 现状：**v0.1.0**（已打 tag）。技能集九步全覆盖、可独立使用；仓库自身是按本集流程走完的一个完整项目——第 0–8 步的产物在 `docs/` 与 `.scratch/engineering-v0.1.0/`，结构体检 28/28。
+- 现状：**v0.1.0**（已打 tag）。技能集九步全覆盖、可独立使用；仓库自身是按本集流程走完的一个完整项目——第 0–8 步的产物在 `docs/` 与 `.scratch/engineering-v0.1.0/`，结构体检 29/29。
 - 自评口径：`python tools/check_project.py --dir . --quiet`。分数与验收记录写在票据里，不写在这里——README 里的数字会过期。
 - 还没做完的一件（记在票据里，不藏着）：**真人陌生人测试**没做过（票据 `04`）——这条代理顶替不了。CI 已在 PR 上验证过、分支保护已配、其余检查见 [docs/release-checklist.md](docs/release-checklist.md)。
 - 路线：`D-11` 决定英文版正文做不做（期限 v0.2.0）；正文里的「手册第 N 步」随源手册版本走。
@@ -146,7 +146,7 @@ idea2oss/
 以及第 2–7 步里的做法——被拷问而不是自己憋需求、规格只合成不访谈、按用户可见行为垂直切票、
 测试先红后绿、标准轴与规格轴分开评审、交接文档只给路径——都能在那一套里找到对应。
 
-**没有复制它的代码或文本**：14 份 `SKILL.md` 是中文重写；判据、兜底路径、35 份模板、四个工具都是本项目自己的。
+**没有复制它的代码或文本**：14 份 `SKILL.md` 是中文重写；判据、兜底路径、35 份模板、五个工具都是本项目自己的。
 独立的部分是：九步骨架、第 0 步立项、第 8 步开源发布与运营、决议台账与决议追溯率、六个体检指标、三档剪裁矩阵。
 
 对照版本：`mattpocock/skills` **v1.2.3**（MIT，已核实是最新 tag）。本项目**不依赖它**——它只是对照组；

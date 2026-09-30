@@ -20,7 +20,7 @@
 ## 回指关系
 
 ```
-docs/decisions.md  (D-01 … D-12，编号永不复用)
+docs/decisions.md  (D-01 … D-14，编号永不复用)
         ▲                        ▲
         │ [D-nn]                 │ Covers: D-nn
    spec 的实现/测试决策      票据头

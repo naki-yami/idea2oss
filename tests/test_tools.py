@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -385,6 +386,111 @@ class S2CheckProject(unittest.TestCase):
             self.assert_self_consistent(data, "L0")
             self.assertEqual(code, 1, "只有 README 的目录不该通过 L0")
             self.assertGreaterEqual(data["ok"], 1, "README 成段了却没算通过")
+
+    # ---- 活文档里的断言 vs 仓库事实（第 13 项） ----
+    # 夹具只造「事实」（远端 / tag / 浅克隆 / tools/ 的数量），假话写在 README 里。
+    # 不拿真实仓库当夹具：真实仓库的远端与 tag 随环境变（CI 的 checkout 是浅克隆）。
+
+    def git_repo(self, tmp, readme, tag=True, remote=True, shallow=False, tools=5, extra=None):
+        """造一个最小 git 仓库：远端 / tag / 浅克隆 / tools/ 由参数决定。"""
+        os.makedirs(os.path.join(tmp, "tools"), exist_ok=True)
+        for i in range(tools):
+            with open(os.path.join(tmp, "tools", "t%d.py" % i), "w", encoding="utf-8") as fh:
+                fh.write("# 占位脚本：只是为了让「N 个脚本」有事实可对\n")
+        with open(os.path.join(tmp, "README.md"), "w", encoding="utf-8") as fh:
+            fh.write(readme)
+        for rel, text in (extra or {}).items():
+            path = os.path.join(tmp, rel)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(text)
+
+        def git(*args):
+            return subprocess.run(["git"] + list(args), cwd=tmp, env=CHILD_ENV,
+                                  capture_output=True, text=True,
+                                  encoding="utf-8", errors="replace").returncode
+
+        git("init", "-q")
+        if remote:
+            git("remote", "add", "origin", "https://example.invalid/fixture.git")
+        git("-c", "user.email=t@example.invalid", "-c", "user.name=t",
+            "commit", "-q", "--allow-empty", "-m", "夹具")
+        if tag:
+            git("tag", "v9.9.9")
+        if shallow:
+            with open(os.path.join(tmp, ".git", "shallow"), "w", encoding="utf-8") as fh:
+                fh.write("0" * 40 + "\n")
+        return tmp
+
+    def stale_row(self, tmp):
+        """跑 L2，返回 (那一行的结果, 退出码)。"""
+        code, data = self.check_json("--dir", tmp, "--level", "L2")
+        rows = [r for r in data["results"] if r["id"] == "stale_claims"]
+        self.assertEqual(len(rows), 1, "体检器没给出「活文档里没有与事实相反的断言」这一项")
+        return rows[0], code
+
+    @unittest.skipUnless(shutil.which("git"), "本机没有 git，跳过与 git 事实有关的用例")
+    def test_stale_claim_about_remote_is_flagged(self):
+        """README 说「远端还没接」，而仓库有远端 → 必须报出来，并点到「文件:行」。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            self.git_repo(tmp, "# 夹具\n\n- 远端还没接，先本地跑。\n")
+            row, code = self.stale_row(tmp)
+            self.assertEqual(row["status"], "MISS", f"与事实相反的断言没被逮住：{row['detail']}")
+            self.assertIn("README.md:3", row["detail"], row["detail"])
+            self.assertEqual(code, 1, "有断言与事实相反时，退出码该是 1")
+
+    @unittest.skipUnless(shutil.which("git"), "本机没有 git，跳过与 git 事实有关的用例")
+    def test_claim_that_matches_the_facts_passes(self):
+        """同一套事实，README 里没有断言 → 这一项过（对照组）。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            self.git_repo(tmp, "# 夹具\n\n远端见 `git remote -v`。\n")
+            row, _ = self.stale_row(tmp)
+            self.assertEqual(row["status"], "OK", row["detail"])
+
+    @unittest.skipUnless(shutil.which("git"), "本机没有 git，跳过与 git 事实有关的用例")
+    def test_snapshot_is_not_checked(self):
+        """同一句假话写进快照 → 不报：快照记的是某个时点发生了什么，改它等于伪造证据。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            self.git_repo(tmp, "# 夹具\n\n远端见 `git remote -v`。\n",
+                          extra={"docs/release-checklist.md": "- 远端还没接。\n"})
+            row, _ = self.stale_row(tmp)
+            self.assertEqual(row["status"], "OK", f"快照被当成活文档核对了：{row['detail']}")
+
+    @unittest.skipUnless(shutil.which("git"), "本机没有 git，跳过与 git 事实有关的用例")
+    def test_tool_entry_count_is_checked(self):
+        """README 说「三个脚本」而 tools/ 下有五个 → 报出来（中文数字也认）。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            self.git_repo(tmp, "# 夹具\n\n`tools/` 里三个脚本能跑。\n", tools=5)
+            row, _ = self.stale_row(tmp)
+            self.assertEqual(row["status"], "MISS", f"工具入口数对不上却没报：{row['detail']}")
+            self.assertIn("三个脚本", row["detail"], row["detail"])
+
+    @unittest.skipUnless(shutil.which("git"), "本机没有 git，跳过与 git 事实有关的用例")
+    def test_shallow_clone_skips_the_tag_claim(self):
+        """浅克隆里 `git tag` 空着不等于「没有 tag」：跳过并打印，不当成事实。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            self.git_repo(tmp, "# 夹具\n\n- `git tag` 为空。\n", tag=False, shallow=True)
+            row, _ = self.stale_row(tmp)
+            self.assertEqual(row["status"], "OK", row["detail"])
+            self.assertIn("取不到tag的事实", row["detail"], row["detail"])
+
+    @unittest.skipUnless(shutil.which("git"), "本机没有 git，跳过与 git 事实有关的用例")
+    def test_dirty_repo_skips_the_self_reported_score(self):
+        """其余项没全过时自报分数无从比对 → 跳过并说明，不制造第二处红。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            self.git_repo(tmp, "# 夹具\n\n结构体检 9/9。\n")
+            row, _ = self.stale_row(tmp)
+            self.assertEqual(row["status"], "OK", row["detail"])
+            self.assertIn("自报分数跳过", row["detail"], row["detail"])
+
+    def test_real_repo_has_no_missing_items(self):
+        """本仓库自己必须全过：README 上写着自报分数，体检器现在会核对它。"""
+        code, data = self.check_json("--dir", REPO)
+        missing = [r["id"] for r in data["results"] if r["status"] == "MISS"]
+        detail = "; ".join(f"{r['id']}: {r['detail']}" for r in data["results"]
+                           if r["status"] == "MISS")
+        self.assertEqual(missing, [], f"本仓库没全过：{detail}")
+        self.assertEqual(code, 0, "强制项全过时退出码该是 0")
 
 
 class S3Install(unittest.TestCase):

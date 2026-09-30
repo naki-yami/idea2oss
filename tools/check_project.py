@@ -11,6 +11,11 @@ r"""结构体检器：对照《项目结构与接手标准》扫描一个真实�
 
 说明：它只查**存在性与可机械判断的一致性**，不查质量。
 "测试是否挂在接缝上""文档是不是你要的"这类永远要人判断——那部分只有你的 Accept: 能负责。
+
+其中「活文档里没有与事实相反的断言」一项，会拿文档里的断言去核对仓库事实
+（远端 / tag / 用例数 / 工具入口数 / 判据条数 / 台账编号区间与条数 / 自报分数）。
+**快照不参与核对**——CHANGELOG、票据、ADR 记的是某个时点发生了什么，改它们等于伪造证据。
+取不到事实的项跳过并打印，不假装查过。
 """
 from __future__ import annotations
 
@@ -18,12 +23,70 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 
 SKIP_DIRS = {".git", "node_modules", "dist", "build", "out", ".venv", "venv",
              "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache",
              "coverage", ".idea", ".vscode", ".dsh", ".next", "target"}
 LEVELS = ("L0", "L1", "L2")
+
+# 测试文件所在的目录名（「N 个用例」这一项的事实来源）
+TEST_DIRS = ("tests", "test", "spec", "__tests__")
+
+# 「活文档」= 声明仓库**现在**长什么样的文档。只扫它们，快照不扫。
+LIVE_DOCS = (r"^README\.md$", r"^CONTRIBUTING\.md$", r"^SECURITY\.md$",
+             r"^CODE_OF_CONDUCT\.md$", r"^AGENTS\.md$", r"^GUIDE\.md$",
+             r"^docs/[^/]+\.md$", r"^docs/agents/[^/]+\.md$")
+
+# 快照：记的是「某个时点发生了什么」，回头改反而是伪造证据（CONTEXT.md 的「快照」条）
+SNAPSHOT_DOCS = (r"^docs/release-checklist\.md$",)
+
+# 文档自己声明「表里的数字都会过期、以文件里的实际内容为准」的（`docs/onboarding.md` 末段）：
+# 它那里的数字是「文件还在不在」的路标，不是承诺，所以只核对非数字断言。
+NUMBER_EXEMPT_DOCS = (r"^docs/onboarding\.md$",)
+
+# 可证伪断言：只认指向**整个仓库**的写法。不认「N 个测试」——它常是局部计数
+# （架构文档里「S6 一进仓库就带了 5 个测试」），泛化会带来假阳性。
+REMOTE_CLAIM = re.compile(r"远端(还|也)?没接|还没接远端|计划托管在")
+TAG_CLAIM = re.compile(r"git tag[^\n。]{0,14}?(空|没有)")
+TEST_COUNT_CLAIM = re.compile(r"(\d+)\s*个用例")
+# 「N 个命令行入口 / 脚本 / 工具」说的是同一件事：`tools/` 下有几个能跑的入口。
+# 前面挡掉「另一个工具」这类泛指——它不是计数。
+TOOL_COUNT_CLAIM = re.compile(r"(?<![另这那每某几半])"
+                              r"([0-9零一二两三四五六七八九十]+)\s*个(?:命令行入口|脚本|工具)")
+# 「检查 N 项」= 体检器一共有几条判据。分档只改哪些是强制项、不改清单长度，
+# 所以这个数对任何项目都一样，是静态事实（不随扫描档位变）。
+ITEM_COUNT_CLAIM = re.compile(r"检查\s*(\d+)\s*项")
+# 自报分数「结构体检 N/N」= 上次全过时的 N。真值要等本次全部判完才知道，
+# 所以它只在**其余项全过**时比对——不全过时文档写多少都不算与事实相反。
+SCORE_CLAIM = re.compile(r"结构体检\s*(\d+)\s*/\s*(\d+)")
+LEDGER_RANGE_CLAIM = re.compile(r"D-01[`\s]*…[`\s]*D-(\d+)")
+# 「N 条决议」与上面的区间说的是同一个事实的两个侧面：到哪一条、一共几条。
+LEDGER_COUNT_CLAIM = re.compile(r"(\d+)\s*条决议")
+
+# 数字类断言（事实源是仓库里的文件与 git）。文档若自称「数字会过期」，这几条不核对。
+NUMBER_CLAIMS = (TEST_COUNT_CLAIM, TOOL_COUNT_CLAIM, ITEM_COUNT_CLAIM, SCORE_CLAIM,
+                 LEDGER_RANGE_CLAIM, LEDGER_COUNT_CLAIM)
+
+# 「N 个用例」只认阿拉伯数字：中文数字在正文里多半是「写一个用例」这种泛称，
+# 认了就是假阳性。「N 个命令行入口」反过来——它只可能指总数，所以中文数字也认。
+CN_DIGITS = {"零": 0, "一": 1, "二": 2, "两": 2, "三": 3, "四": 4,
+             "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
+
+
+def to_int(token):
+    """把「5」「三」「十四」都读成 int；读不出来给 None。"""
+    token = token.strip()
+    if token.isdigit():
+        return int(token)
+    if "十" not in token:
+        return CN_DIGITS.get(token)
+    head, _, tail = token.partition("十")
+    tens = CN_DIGITS.get(head, 1) if head else 1
+    ones = CN_DIGITS.get(tail, 0) if tail else 0
+    return tens * 10 + ones
+
 
 # 九步判据里"哪些档位必须交"
 NEED = {
@@ -55,6 +118,7 @@ NEED = {
     "handoff_not_committed": {"L0", "L1", "L2"},
     "single_agent_entry":    {"L1", "L2"},
     "no_dup_ledger":    {"L1", "L2"},
+    "stale_claims":     {"L2"},
 }
 
 results = []
@@ -101,6 +165,124 @@ def find(files, *patterns):
         rx = re.compile(p)
         out += [f for f in files if rx.search(f)]
     return sorted(set(out))
+
+
+def git_facts(root):
+    """远端与 tag 的现状。取不到的给 None——那一项跳过并打印出来，不误报也不假装查过。"""
+    def run(*argv):
+        try:
+            proc = subprocess.run(["git", "-C", root] + list(argv), capture_output=True,
+                                  text=True, encoding="utf-8", errors="replace", timeout=20)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return proc.stdout if proc.returncode == 0 else None
+
+    remote, tags = run("remote", "-v"), run("tag")
+    # 浅克隆（CI 的 checkout 默认就是）不把 tag 取下来：`git tag` 空着不是"没有 tag"，
+    # 是"看不见 tag"。空 + 浅克隆 → 当作取不到，跳过并打印——否则「`git tag` 为空」
+    # 这类断言会被静默放行，而那正是这条检查要防的。
+    shallow = os.path.exists(os.path.join(root, ".git", "shallow"))
+    if tags is None:
+        has_tag = None
+    elif tags.strip():
+        has_tag = True
+    else:
+        has_tag = None if shallow else False
+    return {"has_remote": None if remote is None else bool(remote.strip()),
+            "has_tag": has_tag}
+
+
+def count_tests(root, files):
+    """测试目录下 def test_ 的条数——「N 个用例」这类断言的事实来源。"""
+    total = 0
+    for f in files:
+        if f.endswith(".py") and any(p.lower() in TEST_DIRS for p in f.split("/")[:-1]):
+            total += len(re.findall(r"^\s*def test_\w+", read(os.path.join(root, f)), re.M))
+    return total
+
+
+def ledger_ids(root, files):
+    """台账里出现过的编号（去重、升序）。编号不复用，所以它一次给出两个事实：
+    最大值 = 「D-01…D-NN」该写到哪；条数 = 「N 条决议」该写几。"""
+    led = find(files, r"^docs/decisions\.md$", r".*/ledger\.md$", r".*/decisions\.md$")
+    if not led:
+        return []
+    ids = {int(i) for i in re.findall(r"\bD-(\d+)\b", read(os.path.join(root, led[0])))}
+    return sorted(ids)
+
+
+def live_docs(files):
+    """活文档 = 声明仓库**现在**长什么样的那一批；快照不在其中。"""
+    return [f for f in find(files, *LIVE_DOCS)
+            if not any(re.search(p, f) for p in SNAPSHOT_DOCS)]
+
+
+def number_exempt(rel):
+    """这份文档是不是自称「表里的数字会过期、以文件为准」。"""
+    return any(re.search(p, rel) for p in NUMBER_EXEMPT_DOCS)
+
+
+def silent_number_docs(root, docs):
+    """自称数字会过期、而确实写了数字断言的文档——它们的数字按声明跳过，得打印出来。"""
+    return sorted(rel for rel in docs if number_exempt(rel)
+                  and any(rx.search(line) for line in read(os.path.join(root, rel)).splitlines()
+                          for rx in NUMBER_CLAIMS))
+
+
+def claim_errors(rel, no, line, facts):
+    """一行文本里，有哪些断言与仓库事实相反。
+
+    自称「数字会过期」的文档（`NUMBER_EXEMPT_DOCS`）只核对非数字断言。
+    """
+    out = []
+    numbers = not number_exempt(rel)
+
+    def hit(msg):
+        out.append((rel, no, msg))
+
+    if facts["has_remote"] is True and REMOTE_CLAIM.search(line):
+        hit("说「远端还没接」，实际 `git remote -v` 非空")
+    if facts["has_tag"] is True and TAG_CLAIM.search(line):
+        hit("说「`git tag` 为空」，实际已经有 tag")
+    if numbers and facts["test_count"] is not None:
+        m = TEST_COUNT_CLAIM.search(line)
+        if m and int(m.group(1)) != facts["test_count"]:
+            hit(f"说「{m.group(1)} 个用例」，实际 {facts['test_count']} 条")
+    if numbers and facts["tool_count"]:
+        m = TOOL_COUNT_CLAIM.search(line)
+        if m and to_int(m.group(1)) != facts["tool_count"]:
+            hit(f"说「{m.group(0)}」，实际 {facts['tool_count']} 个")
+    if numbers and facts["item_count"]:
+        m = ITEM_COUNT_CLAIM.search(line)
+        if m and int(m.group(1)) != facts["item_count"]:
+            hit(f"说「{m.group(0)}」，实际 {facts['item_count']} 项")
+    if numbers and facts["ledger_max"] is not None:
+        m = LEDGER_RANGE_CLAIM.search(line)
+        if m and int(m.group(1)) != facts["ledger_max"]:
+            hit(f"说决议区间到 D-{m.group(1)}，台账实际到 D-{facts['ledger_max']}")
+        m = LEDGER_COUNT_CLAIM.search(line)
+        if m and int(m.group(1)) != facts["ledger_count"]:
+            hit(f"说「{m.group(0)}」，台账实际 {facts['ledger_count']} 条")
+    if numbers and facts.get("score"):
+        m = SCORE_CLAIM.search(line)
+        if m and f"{m.group(1)}/{m.group(2)}" != facts["score"]:
+            hit(f"说「{m.group(0)}」，本次跑下来是 {facts['score']}")
+    return out
+
+
+def scan_claims(root, docs, facts):
+    """扫一遍活文档，返回全部「与事实相反」的位置。"""
+    out = []
+    for rel in docs:
+        for no, line in enumerate(read(os.path.join(root, rel)).splitlines(), 1):
+            out += claim_errors(rel, no, line, facts)
+    return out
+
+
+def has_score_claim(root, docs):
+    """文档里有没有自报分数——决定要不要打印「这一项跳过」。"""
+    return any(SCORE_CLAIM.search(line)
+               for rel in docs for line in read(os.path.join(root, rel)).splitlines())
 
 
 def main() -> int:
@@ -377,9 +559,43 @@ def main() -> int:
          ("发现：" + ", ".join(ho[:3])) if ho else "未发现",
          "交接文档写系统临时目录；它是一次性输入，且可能含敏感信息", level="L0")
 
+    # ---------- 活文档里的「可证伪断言」 ----------
+    # 文档说 X，仓库实际是不是 X。只扫活文档——快照记的是某个时点发生了什么，
+    # 回头改它反而是伪造证据（CONTEXT.md 的「快照」条）。
+    # 它排在所有项之后：自报分数要等本次全部判完才知道真值。
+    ids = ledger_ids(root, files)
+    facts = dict(git_facts(root),
+                 test_count=count_tests(root, files),
+                 tool_count=len(find(files, r"^tools/.*\.py$")),
+                 item_count=len(NEED),
+                 ledger_max=ids[-1] if ids else None,
+                 ledger_count=len(ids))
+    docs = live_docs(files)
+    others = [r for r in results if r["status"] != "NA"]
+    if others and all(r["status"] == "OK" for r in others):
+        # 全过时自报分数才可比：本次跑下来就是这个数（这一项自己也进分母）
+        denom = len(others) + (1 if req("stale_claims") else 0)
+        facts["score"] = f"{denom}/{denom}"
+    bad = scan_claims(root, docs, facts)
+    notes = []
+    no_facts = [k for k, v in (("远端", facts["has_remote"]), ("tag", facts["has_tag"])) if v is None]
+    if no_facts:
+        notes.append(f"取不到{'、'.join(no_facts)}的事实，跳过")
+    if facts.get("score") is None and has_score_claim(root, docs):
+        notes.append("本次不是全过，自报分数跳过")
+    for rel in silent_number_docs(root, docs):
+        notes.append(f"{rel} 自称数字会过期，那里的数字按它的声明跳过")
+    detail = (f"{len(docs)} 份活文档，未发现" if not bad else
+              f"{len(bad)} 处：" + "；".join(f"{f}:{n} {msg}" for f, n, msg in bad[:3])
+              + ("……" if len(bad) > 3 else ""))
+    mark("stale_claims", "活文档里没有与事实相反的断言", not bad,
+         detail + (f"（{'；'.join(notes)}）" if notes else ""),
+         "把断言改成事实；数字类断言要么由命令产出、要么留着由这项核对，嫌它总变就删掉数字指向文件")
+
     # ---------- 输出 ----------
     order = ["readme", "gitignore", "license", "license_meta", "community", "changelog",
              "context", "adr_dir", "agents_md", "single_agent_entry", "architecture", "onboarding",
+             "stale_claims",
              "brief", "ledger", "no_dup_ledger", "spec", "tickets", "frontier", "traceability",
              "tests", "ci", "release_flow", "pr_template", "issue_template", "env_example",
              "metrics_rows", "no_secrets", "handoff_not_committed"]
