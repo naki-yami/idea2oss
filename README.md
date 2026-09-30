@@ -63,7 +63,7 @@ python tools/install.py --link --target "D:\projects\我的项目"
 | 接手这个仓库该按什么顺序读 | [docs/onboarding.md](docs/onboarding.md) |
 | 某个技能到底干什么 | `skills/<name>/SKILL.md` |
 | 黑话是什么意思 | [CONTEXT.md](CONTEXT.md) |
-| 模块边界与接缝（S1–S5） | [docs/architecture.md](docs/architecture.md) |
+| 模块边界与接缝（S1–S6） | [docs/architecture.md](docs/architecture.md) |
 | 为什么当初这么定 | [docs/decisions.md](docs/decisions.md) + [docs/adr/](docs/adr/) |
 | 这个项目为谁做、什么条件下放弃 | [docs/agents/brief.md](docs/agents/brief.md) |
 | 下一步要做什么 | [.scratch/engineering-v0.1.0/issues/](.scratch/engineering-v0.1.0/issues/) |
@@ -104,15 +104,15 @@ idea2oss/
 ├── templates/             35 份模板与索引
 ├── docs/                  知识层（接手者从这里进）
 │   ├── onboarding.md      30 分钟接手路径
-│   ├── architecture.md    模块与接缝清单 S1–S5
-│   ├── decisions.md       决议台账 D-01…D-12
+│   ├── architecture.md    模块与接缝清单 S1–S6
+│   ├── decisions.md       决议台账 D-01…D-13
 │   ├── adr/               0001–0003 三条架构决策
 │   └── agents/            brief / issue-tracker / triage-labels / domain
 ├── .scratch/              过程层
 │   ├── skill-contract.md  技能编写契约
 │   └── engineering-v0.1.0/  本次的 spec 与票据图
 ├── tests/                 挂在 S1 / S2 / S3 三个接缝上的 unittest
-├── tools/                 四个命令行入口（install / validate / check / dump）
+├── tools/                 五个命令行入口（install / validate / check / licenses / dump）
 └── .github/               CI、release、PR 与 issue 模板、CODEOWNERS、dependabot
 ```
 

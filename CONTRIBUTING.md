@@ -8,8 +8,8 @@
 ## 起开发环境
 
 ```bash
-# 1. 拿到代码（发布前替换：把 <仓库地址> 换成真实地址；远端还没接，现在也可以直接把目录拷到本地）
-git clone <仓库地址>
+# 1. 拿到代码
+git clone https://github.com/naki-yami/idea2oss.git
 cd idea2oss
 
 # 2. 确认 Python：3.8 或更高。不需要虚拟环境，不需要装任何依赖
@@ -26,11 +26,11 @@ python tools/install.py --dry-run
 ```bash
 # 三条必跑。改完自己先跑一遍，再提 PR——CI 跑的是同一套
 python tools/validate_skills.py                            # 技能契约：frontmatter / 八节骨架 / 判据条数 / 交叉引用 / 模板存在性
-python -m unittest discover -s tests                        # 测试：只挂在接缝 S1 / S2 / S3 上，断言行为不断言实现细节
+python -m unittest discover -s tests                        # 测试：挂在接缝 S1 / S2 / S3 / S6 上，断言行为不断言实现细节
 python tools/check_project.py --dir . --level L2 --quiet    # 结构体检：28 项，只列没过的；有强制项未过时退出码 1
 ```
 
-- **过 = 退出码 0。** 第一条应出现「技能数：14」「结果：0 个错误，0 个警告」；第二条应出现 `Ran … OK`（现在是 11 个用例）；第三条在只列失败项时应该什么都不列，末尾是「强制项全过」。
+- **过 = 退出码 0。** 第一条应出现「技能数：14」「结果：0 个错误，0 个警告」；第二条应出现 `Ran … OK`（现在是 20 条）；第三条在只列失败项时应该什么都不列，末尾是「强制项全过」。
 - 改技能正文 → 第一条；改 `tools/` → 第二条；动了仓库结构（新增、删除、改名文件）→ 第三条。三条都不贵，拿不准就都跑。
 - 加 `-v` 看每个用例名：`python -m unittest discover -s tests -v`。测试只通过命令行调工具、只断言退出码与输出关键词，所以 `tools/` 内部随便改，测试不用动。
 - `python` 不在 PATH 上就换成你的解释器绝对路径；上面几条都假设你在仓库根目录下执行。
@@ -67,8 +67,8 @@ python tools/check_project.py --dir . --level L2 --quiet    # 结构体检：28 
 
 ## 响应节奏
 
-- **看到就处理，不承诺频率**：PR 与 issue 会看，但不保证「一周内」——理由与 `SECURITY.md` 一样：一个人维护，承诺频率等于给自己挖坑。
-- **同时只做一张票**：一个人维护，`frontier` 上同时开工的票控制在 1 张，避免半成品堆着。
+- **看到就处理，不承诺频率**：PR 与 issue 会看，但不保证「一周内」——理由与 `SECURITY.md` 一样：一个人维护，承诺频率等于给自己挖坑。（已合并的三个 Dependabot PR 就是这么处理的。）
+- **同时最多两张票**：一个人维护，同时开工的票控制在 1–2 张，避免半成品堆着。（`frontier` 是哪几张，以 `.scratch/<feature>/issues/` 里各票的 `Status` 为准。）
 - **每月一次依赖与 Actions 升级**：`.github/dependabot.yml` 每月提一次 `github-actions` 的版本升级，进来先打 `needs-triage`（本仓库零第三方依赖，实际只会提 Actions 的版本）。
 - **发版认 tag，不跟 main**（`D-10`）：升级到最新 tag，破坏性变更写在 `CHANGELOG.md` 的 Changed 段首行。
 - **跟着源手册走**：正文里的「手册第 N 步 / 第 N 章」都指《AI 结对开发流程手册 V3》；手册出新版本时先比对第二章与第十五章，再决定技能集要不要升。
@@ -77,9 +77,9 @@ python tools/check_project.py --dir . --level L2 --quiet    # 结构体检：28 
 
 这一节是给贡献者的止损线：**下面这些不是你的问题。**
 
-- **没有发布过，自动发布也还没跑过一次，远端也还没接。** `git remote -v` 与 `git tag` 现在都是空的；`.github/workflows/release.yml` 写好了（tag 触发、产物带 `sha256`），但一次都没跑过。第一次发版是票据 `06-first-release`，而且**发布动作由人做**，代理不代发（见 `AGENTS.md` 的权限边界）。
+- **已发布 v0.1.0，但「下载产物 → 校验 sha256」这条路径没人真走过。** 远端与 tag 都在了（`git remote -v` 指向 `github.com/naki-yami/idea2oss`，`git tag` 有 `v0.1.0`），`release.yml` 在打 tag 时跑过一次并成功；但没人真的下载过源码包、用校验文件验一遍。下一次发版（票据 `06-first-release` 收尾）时补上，而且**发布动作由人做**，代理不代发（见 `AGENTS.md` 的权限边界）。
 - **英文版正文还没做。** `skills/*/SKILL.md` 只有中文正文，英文只覆盖 `description` 末尾的 `keywords:`——够触发，不够读（`D-07`）。`D-11` 是待定项，期限 v0.2.0，到期未定就默认不做。
 - **S5 模板接缝还没有契约测试。** `templates/*` 目前只有一个调用方（技能正文），按 `docs/architecture.md` 的规矩「一个适配器是假想的接缝，两个才是真的」还不算真接缝。改了模板，没有任何测试会变红，只能人肉比对结构。同理，`S4`（`SKILL.md` 的 frontmatter）与技能正文本身也没有测试——技能写得对不对，靠人读。
-- **分支保护还没配——卡在令牌权限上，不是卡在套餐上。** 仓库已公开（公开仓库的分支保护是免费的），但配置它需要维护者令牌带 `Administration: Write`，当前令牌只有 Contents 与 Actions。三条规则写在 `docs/release-checklist.md` 里，配好之后「CI 挡住合并」才成立；在那之前由维护者手工看（票据 `03-ci-blocks-merge` 记着）。
+- **分支保护已配**：`main` 必须走 PR、必须 `test (3.9)` 与 `test (3.13)` 通过且分支最新、禁 force push、禁删除。`enforce_admins: false` 是刻意的——一个人维护，给自己留一条热修通道；外部贡献者一律走门禁。规则原文见 `docs/release-checklist.md`。
 - **CI 已在真实 PR 上跑过**：Dependabot 提的三个 Actions 升级 PR 就是真人真事——它们在 main 上跑绿之前，先红过五次。
 - **体检器查不了的那部分一直要靠人。** 测试是不是真挂在接缝上、文档是不是你要的、产品验收、陌生人 30 分钟测试、CI 是否真挡住了合并——`tools/check_project.py` 只查 28 条结构判据，这五件它查不了。
