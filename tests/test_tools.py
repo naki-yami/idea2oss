@@ -422,6 +422,29 @@ class S6Licenses(unittest.TestCase):
             self.assertEqual(code, 1, "坏报告竟然判通过")
             self.assertIn("JSON", out)
 
+    def test_bootstrap_tools_are_ignored(self):
+        """解释器自带的打包工具（pip/setuptools/wheel）不算项目依赖 → 不拦。
+
+        这条对应 CI 上真实发生的第二次红：Python 3.9 的 runner 上，setuptools 的
+        三个许可字段全是空的（3.13 上写的是 MIT），门禁把"解释器自带什么"当成
+        "项目依赖未声明"，于是 3.9 那个 job 单独红。
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._report(tmp, '[{"Name":"setuptools","License":""},{"Name":"pip","License":""}]')
+            code, out = run_tool(os.path.join(TOOLS, "check_licenses.py"), "--report", path)
+            self.assertEqual(code, 0, f"解释器自带工具被当成项目依赖拦下了：\n{out}")
+            self.assertIn("已忽略", out, out)
+
+    def test_ignore_flag_extends_allowlist(self):
+        """--ignore 能把某个包移出检查范围；没给就照旧拦。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._report(tmp, '[{"Name":"mystery","License":""}]')
+            code, _ = run_tool(os.path.join(TOOLS, "check_licenses.py"), "--report", path)
+            self.assertEqual(code, 1, "未声明的普通包本该被拦")
+            code2, out2 = run_tool(os.path.join(TOOLS, "check_licenses.py"),
+                                   "--report", path, "--ignore", "mystery")
+            self.assertEqual(code2, 0, f"--ignore 没生效：\n{out2}")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

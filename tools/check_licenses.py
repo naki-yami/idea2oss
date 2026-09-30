@@ -25,6 +25,13 @@ import sys
 
 BANNED = ("GPL", "AGPL")      # LGPL 里含 GPL，一并拦下——传染性许可要单独评估
 
+# 解释器自带的打包工具，不是项目依赖。默认忽略，理由：
+#   · 门禁该管的是「项目拉了哪些依赖」，不是「这台解释器自带什么」；
+#   · 它们的许可元数据本身也不可靠——Python 3.9 的 runner 上 setuptools 三个许可字段
+#     全是空的（3.13 上写的是 MIT），拿它当"未声明依赖"卡构建，就是自己给自己找红。
+# 忽略不等于看不见：跑的时候会把忽略了哪几个打出来。
+BOOTSTRAP = ("pip", "setuptools", "wheel")
+
 
 def resolve_license(meta) -> str:
     """三级回退解析一个包的许可：PEP 639 表达式 → classifiers → 旧 License 字段。"""
@@ -69,6 +76,8 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="依赖许可门禁（标准库实现）")
     ap.add_argument("--report", help="改用一份 pip-licenses JSON 报告，而不是扫当前环境")
     ap.add_argument("--json", action="store_true", help="输出机器可读结果")
+    ap.add_argument("--ignore", action="append", default=[],
+                    help="额外忽略的包名（可重复）。默认已忽略 pip / setuptools / wheel")
     args = ap.parse_args(argv)
 
     if args.report:
@@ -88,13 +97,20 @@ def main(argv=None) -> int:
     else:
         rows = scan_env()
 
+    ignore = {n.lower() for n in list(args.ignore) + list(BOOTSTRAP)}
+    skipped = sorted(r["Name"] for r in rows if r["Name"].lower() in ignore)
+    rows = [r for r in rows if r["Name"].lower() not in ignore]
+
     bad = judge(rows)
     if args.json:
-        print(json.dumps({"scanned": len(rows), "flagged": [b[0] for b in bad],
+        print(json.dumps({"scanned": len(rows), "ignored": skipped,
+                          "flagged": [b[0] for b in bad],
                           "rows": rows}, ensure_ascii=False, indent=2))
         return 1 if bad else 0
 
-    print(f"扫描到 {len(rows)} 个已安装包")
+    print(f"扫描到 {len(rows)} 个已安装包"
+          + (f"（另有 {len(skipped)} 个解释器自带的打包工具已忽略：{', '.join(skipped)}）"
+             if skipped else ""))
     print("（扫的是当前解释器环境；CI 的 runner 环境干净，本地可能带上你自己装的无关包）")
     if not bad:
         worst = ", ".join(sorted({r["License"] for r in rows if r["License"]})[:6])
