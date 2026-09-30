@@ -87,7 +87,7 @@ SKILL_TEMPLATE = """# 测试技能
 6. **查手工兜底**：「手工兜底」节不能空——它是这套技能集的卖点。
    做到什么程度算完：这一节短于一行实际内容就报错。
 7. **查交叉引用**：正文里出现的「调用 + 反引号包住的技能名」必须是真实技能，
-   `templates/...` 必须是真实文件。
+   `templates/` 目录下的模板名必须是真实文件。
    做到什么程度算完：指向不存在的目标时，错误文本里能读到那个名字。
 8. **查关键词**：`description` 末尾要有英文 `keywords:`，保证英文环境也能触发。
    做到什么程度算完：没有就出警告，不拦合并。
@@ -222,6 +222,21 @@ class S1ValidateSkills(unittest.TestCase):
             code, out = run_tool(os.path.join(TOOLS, "validate_skills.py"), "--root", tmp)
             self.assertEqual(code, 1, f"引用不存在的技能竟然通过了：\n{out}")
             self.assertIn("调用了不存在的技能", out, out)
+
+    def test_dot_only_template_reference_fails(self):
+        """`templates/...` 这种纯点号引用必须判错——**两个平台都要判错**。
+
+        这条是 CI 逼出来的：Windows 会把路径结尾的点剥掉，
+        `os.path.exists("templates/...")` 指到 templates 目录本身、返回 True，
+        于是本地 17 个测试全绿，Linux 上第一个就红（ci #1–#6 全红的原因）。
+        修法是双管齐下：夹具不再写这种占位，校验器显式拦掉纯点号引用。
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            body = SKILL_TEMPLATE + "\n引用：`templates/...`\n"
+            write_skill_set(tmp, body=body)
+            code, out = run_tool(os.path.join(TOOLS, "validate_skills.py"), "--root", tmp)
+            self.assertEqual(code, 1, f"占位式模板引用竟然通过了（Windows 路径语义又把它掩盖了）：\n{out}")
+            self.assertIn("不是文件名", out, out)
 
 
 class S2CheckProject(unittest.TestCase):

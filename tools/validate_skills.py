@@ -132,7 +132,15 @@ def main() -> int:
             if target not in names:
                 errors.append(f"{rel}: 调用了不存在的技能 `{target}`")
 
-        for tpl in set(TEMPLATE_RE.findall(body)):
+        for tpl in sorted(set(TEMPLATE_RE.findall(body))):
+            # 纯点号的名字（例如 `templates/...`）必须在两端判法一致：
+            # Windows 会把路径结尾的点剥掉，`os.path.exists("templates/...")` 竟然指到
+            # templates 目录本身、返回 True；Linux 上它就是一个不存在的文件名、返回 False。
+            # 不显式拦掉，同一个仓库就会"本地全绿、CI 红"——本仓库的 ci #1–#6 全红就是这么来的。
+            if not tpl.strip("."):
+                errors.append(f"{rel}: 模板引用不是文件名（templates/{tpl}）——"
+                              f"指向目录、占位符不算引用")
+                continue
             if not os.path.exists(os.path.join(templates_dir, tpl)):
                 errors.append(f"{rel}: 引用了不存在的模板 templates/{tpl}")
 
