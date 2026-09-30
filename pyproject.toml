@@ -1,0 +1,61 @@
+# -*- coding: utf-8 -*-
+# idea2oss 的包元数据与工具配置。
+#
+# 这份文件存在的三个理由（都不是"为了能 pip install"）：
+#   1. check_project.py 的「包元数据有 license 字段」一项要看它，SPDX 标识与
+#      根目录 LICENSE、README 的「许可与贡献」三处保持一致（否则体检器记 WARN）；
+#   2. CI 按 requires-python 选解释器版本，本地按它知道最低支持到哪；
+#   3. 顺手把 lint 的口径固定下来，省得每个人的编辑器各写各的。
+#
+# 有意不写的：
+#   - 不写 [build-system]：本项目不是要被 pip 安装的库，工具就是三个能直接
+#     `python tools/xxx.py` 跑的脚本（README「30 秒上手」）。零依赖（D-06）也意味着
+#     不该为了打包去拉 setuptools。
+#   - 不写 [project.scripts]（console_scripts）：装了包才有的命令是伪入口，脚本路径才是真的。
+#   - 不写 [tool.setuptools] 的 packages：tools/ 不进发行物，避免出现"装了包却没有工具"的半成品。
+
+[project]
+name = "idea2oss"
+version = "0.1.0"
+description = "把「从想法到开源」的九步流程做成可独立使用的技能集，每步都带可执行的完成判据"
+readme = "README.md"
+license = "MIT"                     # SPDX 标识，与 LICENSE、README 三处一致
+requires-python = ">=3.8"
+
+# D-06：零第三方依赖。tools/ 只用标准库，这一行空着就是那条约束的可执行形式。
+dependencies = []
+
+keywords = ["agent-skills", "workflow", "oss", "checklist", "chinese"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Chinese (Simplified)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Documentation",
+]
+
+[project.urls]
+Homepage = "https://github.com/TODO-owner/idea2oss"
+
+# ---------------------------------------------------------------------------
+# 工具配置（都需要你自己装那个工具，项目本身不依赖它们）
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+# 与 .gitignore / .editorconfig 的口径一致：只检查仓库自己写的代码
+extend-exclude = [".scratch", "templates"]
+
+[tool.ruff.lint]
+# E/F 是 pycodestyle 与 pyflakes 的基本集；I 管 import 顺序
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]                   # 行宽交给 formatter，长中文注释不硬断
+
+[tool.ruff.format]
+quote-style = "double"

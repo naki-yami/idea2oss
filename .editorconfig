@@ -1,0 +1,43 @@
+# 让编辑器和 CI 用同一套格式约定，减少"我这跑过了"的争论
+# 第 7 步 ｜ 判据：本地与 CI 用同一套格式约定 ｜ 结构照 templates/editorconfig.txt，内容按本项目改
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Python：PEP 8 是 4 空格；tools/ 与 tests/ 都按它写
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+# 工作流与配置文件：2 空格是 YAML 的通行写法，层级靠缩进读
+[*.{yml,yaml,toml}]
+indent_size = 2
+
+# Markdown：行尾两个空格是硬换行，删了会改变渲染结果
+[*.md]
+trim_trailing_whitespace = false
+
+# 技能正文与模板：与 Markdown 同一条理由；这些是产品本身，不要被编辑器"顺手修好"
+[skills/**/SKILL.md]
+trim_trailing_whitespace = false
+
+[templates/**]
+trim_trailing_whitespace = false
+insert_final_newline = true
+
+# 示例配置：`.env` 的语法里没有缩进概念，空格可能进值
+[.env.example]
+indent_style = space
+indent_size = 2
+
+# 许可证与变更日志：全文照抄，不许任何自动改写（MD lint、格式化器都退开）
+[LICENSE]
+insert_final_newline = true
+trim_trailing_whitespace = false
