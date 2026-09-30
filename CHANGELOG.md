@@ -7,6 +7,20 @@
 
 ## [Unreleased]
 
+### Added
+
+- `tools/check_licenses.py`（接缝 `S6`）：依赖许可门禁，**标准库实现**（符合 `D-06`），许可按 `License-Expression` → Trove classifiers → 旧 `License` 字段三级回退解析；`--report` / `--json` / `--ignore`
+- **分支保护**：`main` 必须走 PR、必须 `test (3.9)` 与 `test (3.13)` 通过且分支最新、禁 force push、禁删除（公开仓库免费；`enforce_admins: false` 是刻意留的热修通道）
+- 测试从 12 条增到 20 条：新增 `S6` 许可门禁 5 条、纯点号模板引用回归、`install.py` 默认目标回归、忽略名单
+
+### Fixed
+
+- **三次 CI 真红，三种根因**（每一次都有本地复现与回归测试）：
+  - `pip-licenses` 只读包元数据的旧字段 `License:`，而按 PEP 639 发布的新包把它写在 `License-Expression:` 里——它一行都判不出来、输出空清单，门禁空转。改为自带解析，并把判断逻辑从流水线的 heredoc 搬进 `tools/check_licenses.py`（能本地复现、能测）
+  - **Windows 把 `templates/...` 规范化成 `templates` 目录本身**，`os.path.exists` 返回 True——夹具里一处悬空的模板引用被掩盖，本地 17 条测试全绿而 Linux 必红。修夹具 + 校验器显式拦掉纯点号引用
+  - 门禁把**解释器自带的 `setuptools`**（Python 3.9 的 runner 上三个许可字段全空）当成"项目依赖未声明"。改为默认忽略 `pip` / `setuptools` / `wheel`，且**忽略不等于看不见**：跑的时候会打出来
+- 响应时限按维护者口径改写：**尽力而为，不承诺时限**（`SECURITY.md` / `CONTRIBUTING.md` / `CODE_OF_CONDUCT.md` 三处一致）——一个人维护的项目不写做不到的承诺
+
 ### Planned
 
 - `D-11`：英文版技能正文——**期限 v0.2.0 之前定**，到期未定则默认不做，并把该条改成「默认：不做」

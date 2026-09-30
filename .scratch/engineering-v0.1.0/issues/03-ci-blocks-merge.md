@@ -1,13 +1,13 @@
 # 03 让 CI 在 PR 上跑并挡住合并
 
-Status: todo
+Status: done
 Blocked by: -            # 02 已 done，本票现在就能开工
 Covers: D-12             # 覆盖台账里哪些决议
 Verify: python tools/check_project.py --dir . --level L2 --quiet
-Rounds: -                # 尝试了几轮（指标：一次收敛率）
-Sessions: -              # 跨了几个会话（>1 说明票切大了）
-Accept: -                # 第 6 步填：你亲手跑一遍后的 通过/不通过 + 原因
-Review: -                # 第 6 步填：两轴发现项计数（指标：评审返工）
+Rounds: 4                # 尝试了几轮：三次真红（PEP 639 字段 / Windows 路径语义 / setuptools 被当成依赖）+ 一次门禁验证
+Sessions: 2              # 跨了几个会话：本地一轮；接上远端、装上 gh 之后一轮
+Accept: 通过 —— 维护者亲手验（2026-09-30）：① ci 在 main 上绿（run #8，3.9 与 3.13 全过）；② 故意失败的 PR #4 上 CI 变红；③ 该 PR 的 `mergeStateStatus=BLOCKED`，而 `mergeable=MERGEABLE`——说明是门禁挡的，不是冲突挡的；④ 回读保护规则确认：必须走 PR、必须 `test (3.9)`+`test (3.13)` 通过且分支最新、禁 force push、禁删除、必须解决对话
+Review: 5 项，全部已修（清单见 `CHANGELOG.md` 的 Fixed 段）
 
 ## 要什么
 

@@ -17,13 +17,34 @@
 - [x] 占位全部清除：`example.com` 邮箱 ×2、CODEOWNERS 占位 ×5（复查：0 处真实残留；本行出现的 `example.com` 只是在说明删了什么）
 - [x] **默认分支名与 CI 触发条件一致**：分支从 `master` 改名为 `main`——`.github/workflows/ci.yml` 监听的是 `branches: [main]`，不改名的话推上去 CI 一次都不会跑。这类"名字对不上"的坑只有在推之前查一遍才发现得了。
 
-## 还差三件
+## 已完成（第二阶段：接上远端与门禁，2026-09-30）
 
-| # | 事项 | 谁 | 怎么做 | 判据 |
-|---|---|---|---|---|
-| 1 | 推上远端，让 CI 真跑一次 | 维护者（命令可代跑） | 见下面的三条命令 | Actions 页出现一次绿色运行 |
-| 2 | 用一个故意失败的 PR 验证 CI 挡合并 | 维护者 | 建分支改坏一个技能（例如删掉某节标题）→ 提 PR | CI 变红，且合并被挡住 |
-| 3 | 配分支保护 | 维护者（平台侧） | Settings → Branches，三条规则见下 | 规则已保存并对 `main` 生效 |
+- [x] 推上远端：`main` + tag `v0.1.0`（`git push` 与 tag 都过了 SSH）
+- [x] **CI 在 main 上跑绿**：run #8，两个矩阵 job 全过（3.9 用 14s、3.13 用 8s）
+- [x] **CI 在 PR 上会跑，且失败会挡住合并**：故意失败的 PR #4 → CI 红 → `mergeStateStatus=BLOCKED`，而 `mergeable=MERGEABLE`（是门禁挡的，不是冲突）
+- [x] **分支保护已配**（仓库公开后免费）：
+  - 必须走 PR 才能合进 `main`；必须 `test (3.9)` 与 `test (3.13)` 全绿，且分支必须最新
+  - 禁 force push、禁删除分支、必须解决对话
+  - `enforce_admins: false` 是**刻意的**：一个人维护，给自己留一条热修通道；外部贡献者一律走门禁
+- [x] 响应时限按维护者的意思改成「**尽力而为，不承诺时限**」（`SECURITY.md` / `CONTRIBUTING.md` / `CODE_OF_CONDUCT.md` 三处口径一致）
+- [x] 仓库转为公开
+
+## 还差一件（只有维护者能安排）
+
+- [ ] 找一个**没看过这个项目的人**走一遍 `docs/onboarding.md`（票据 `04` 的判据）——代理顶替不了，这是第 8 步里唯一还没验的一条
+
+### 配好的三条规则（原文，供复核）
+
+```json
+{
+  "required_status_checks": {"strict": true, "contexts": ["test (3.9)", "test (3.13)"]},
+  "enforce_admins": false,
+  "required_pull_request_reviews": {"required_approving_review_count": 0},
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_conversation_resolution": true
+}
+```
 
 ### 推上远端的三条命令
 
