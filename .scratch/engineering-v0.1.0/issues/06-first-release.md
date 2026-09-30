@@ -43,3 +43,6 @@ Review: -                # 第 6 步填：两轴发现项计数（指标：评�
 ## Comments
 
 <!-- 评论与历史追加到这里，不要写进头部 -->
+
+- 2026-09-30：`CHANGELOG.md` 的 `[Unreleased]` 已切成 `[0.1.0] - 2026-09-30`；本地 tag `v0.1.0` 已打（`git tag` 可验）。
+- **本票仍为 todo**：判据是「使用者拿到一个有版本号的仓库」，本地 tag 不算数——推 tag、发 release 要等 `03`（CI 在真实 PR 上验证过）之后由维护者做。剩余步骤见 `docs/release-checklist.md`。
