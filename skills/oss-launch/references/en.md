@@ -8,7 +8,7 @@
 
 **Use** before the repo is meant to be used or read by others; before the first tag; when someone reports "I can't install it" or "I don't know which file to change"; when you're ready to take outside PRs. **Don't use** for a weekend tool only you use — no license or community files needed, but **secrets and data boundaries are never optional**; for a closed-source internal repo — take just 8.4 (CI and branch protection) and 8.5 (versions and changelog).
 
-**The order can't be reversed**: pass the gates (legal and security) first, build the façade second — a beautiful façade on the wrong license gets torn down. The criterion is only one, but hard: **the stranger-in-30-minutes test** — in a clean directory, reading only the README, a stranger installs it, runs it once, and knows which file to change to take part. Fail that and "open source" just means the code is uploaded.
+**The order can't be reversed**: pass the gates (legal and security) first, build the façade second — a beautiful façade on the wrong license gets torn down. The criterion is only one, and it is strict: **the stranger-in-30-minutes test** — in a clean directory, reading only the README, a stranger installs it, runs it once, and knows which file to change to take part. Fail that and "open source" just means the code is uploaded.
 
 ## Inputs
 
@@ -43,7 +43,7 @@
    | 3–6 | Install it and run it once | README "30-second start" | The quickstart isn't real, or exceeds three commands |
    | 6–10 | Do I understand the vocabulary here | `CONTEXT.md` (glossary template `templates/CONTEXT.md`) | No `CONTEXT.md`, or an empty glossary |
    | 10–14 | What does the structure look like, which file do I change | `docs/architecture.md` (seam list) | No architecture doc or seam list (step 4, before `ticket-plan`) |
-   | 14–18 | Why was it decided this way | `docs/decisions.md` + `docs/adr/` | No ledger or ADRs (go back to `decision-ledger`) |
+   | 14–18 | Why was it decided this way | `docs/decisions.md` + `docs/adr/` | No decision ledger or ADRs (go back to `decision-ledger`) |
    | 18–22 | What happens next, which ticket can start | ticket frontier (`.scratch/<feature>/issues/`) | No startable ticket, or no `good first issue` |
    | 22–26 | How do I take part, who gets a vulnerability report | `CONTRIBUTING.md` + `SECURITY.md` | CONTRIBUTING / SECURITY missing |
    | 26–30 | Open a PR and watch CI run by itself | the platform's PR page + branch protection | No CI or branch protection (rules not configured on the platform) |
