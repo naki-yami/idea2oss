@@ -1,0 +1,17 @@
+<!-- idea2oss 模板 · 来自《AI 结对开发流程手册 V3》附录 A/B ｜ 复制过去改内容，结构不要改 -->
+
+<!-- 第 7 步 ｜ 判据：本地与 CI 用同一套格式约定 ｜ 结构不要改，改内容 -->
+# 让编辑器和 CI 用同一套格式约定，减少"我这跑过了"的争论
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

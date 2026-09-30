@@ -1,0 +1,18 @@
+<!-- idea2oss 模板 · 来自《AI 结对开发流程手册 V3》附录 A/B ｜ 复制过去改内容，结构不要改 -->
+
+<!-- 8.4 ｜ 判据：依赖升级与漏洞告警，且把告警当 issue 处理 ｜ 结构不要改，改内容 -->
+version: 2
+
+# 8.4：Dependabot 管依赖升级与漏洞告警，并把告警当 issue 处理。
+
+updates:
+  - package-ecosystem: TODO   # npm / pip / cargo / github-actions
+    directory: "/"
+    schedule:
+      interval: monthly        # 每月一次小版本升级；安全告警即时处理
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

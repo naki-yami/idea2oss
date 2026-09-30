@@ -1,0 +1,28 @@
+<!-- idea2oss 模板 · 来自《AI 结对开发流程手册 V3》附录 A/B ｜ 复制过去改内容，结构不要改 -->
+
+<!-- 附录 B4 ｜ 判据：PR 上自动跑，失败挡住合并 ｜ 结构不要改，改内容 -->
+name: ci
+
+# 附录 B4 ｜ 判据：别人提 PR 时 CI 会自动跑，而且失败会挡住合并。
+# 做不到这两点，等于没有 CI。矩阵只留你真正支持的两个版本，多一个都是在烧你的时间。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # TODO 换成你的语言：setup-node / setup-python / rust-toolchain ...
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run lint --if-present
+      - run: npm run typecheck --if-present
+      - run: npm test
+      - run: npm run build --if-present
+      # TODO 依赖许可检查（GPL/AGPL/未知许可要单独看），例如 license-checker / pip-licenses

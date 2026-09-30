@@ -1,0 +1,21 @@
+<!-- idea2oss 模板 · 来自《AI 结对开发流程手册 V3》附录 A/B ｜ 复制过去改内容，结构不要改 -->
+
+<!-- 8.4 ｜ 判据：tag 触发构建发布，产物可校验来源 ｜ 结构不要改，改内容 -->
+name: release
+
+# 8.4 发布流水线：打 tag 触发构建与发布，产物带校验（哈希或签名），让下载的人能验证来源。
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: TODO 构建命令
+      - run: TODO 生成校验文件（sha256sum 或签名）
+      - uses: softprops/action-gh-release@v2
+        with:
+          body_path: TODO 从 CHANGELOG 摘出本版本段落

@@ -1,0 +1,39 @@
+<!-- idea2oss 模板 · 来自《AI 结对开发流程手册 V3》附录 A/B ｜ 复制过去改内容，结构不要改 -->
+
+<!-- 第 1 步 ｜ 判据：首次提交前划清四类边界：依赖 / 产物 / 本机配置 / 密钥 ｜ 结构不要改，改内容 -->
+# 四类边界：依赖目录 / 构建输出 / 本机配置 / 密钥文件
+# 第 1 步判据：首次提交前划清边界，别把 node_modules、产物、.env 吞进历史。
+
+# 依赖
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# 构建输出
+dist/
+build/
+out/
+*.egg-info/
+.coverage
+coverage/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 本机配置
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.local
+
+# 密钥（提交前扫一眼 git status 里有没有这些）
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.*
