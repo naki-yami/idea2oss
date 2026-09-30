@@ -11,7 +11,7 @@
 
 走私密渠道：
 
-- 邮箱：**`2035116682@qq.com`** ｜ 维护者在看的地址，收到会回。
+- 邮箱：**`2055604701@qq.com`** ｜ 维护者在看的地址，收到会回。
 - 平台私密报告入口：仓库页 **Security → Report a vulnerability** ｜ 远端接上 GitHub 之后可用（仓库地址见 `git remote -v`；本仓库计划托管在 `github.com/naki-yami/idea2oss`）。
 - 两条都不可用时：用 `git log` 的提交者或 `LICENSE` 里的维护者署名找到维护者本人私下联系，**不要退回到公开 issue 贴细节**。
 

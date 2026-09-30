@@ -8,7 +8,7 @@
 - [x] 许可证三处一致：`LICENSE` 全文 / `pyproject.toml` 的 `license` / README 许可段
 - [x] 仓库**全历史**无密钥：无密钥模式命中、无明文密钥文件
 - [x] 零第三方依赖 → 许可污染风险为零（`D-06`）
-- [x] 联系方式落地：`SECURITY.md` 与 `CODE_OF_CONDUCT.md` → `2035116682@qq.com`；`.github/CODEOWNERS` → `@naki-yami`
+- [x] 联系方式落地：`SECURITY.md` 与 `CODE_OF_CONDUCT.md` → `2055604701@qq.com`；`.github/CODEOWNERS` → `@naki-yami`
 - [x] 第三方内容的许可说明：`CODE_OF_CONDUCT.md` 末尾写明正文为 Contributor Covenant v2.1（CC BY-SA 4.0），保留署名与链接
 - [x] 三条门禁全绿：结构体检 28/28、技能契约 0 错 0 警、12 个测试 OK
 - [x] `CHANGELOG.md` 的 `[Unreleased]` 已切成 `[0.1.0] - 2026-09-30`
