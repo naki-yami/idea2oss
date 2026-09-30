@@ -1,0 +1,11 @@
+# 统一换行：仓库里存 LF，检出到 Windows 也是 LF
+# 理由：CI 跑在 Linux，本地在 Windows。不写这一行，每次提交都会产生满屏 CRLF 警告，
+#       diff 里也会混进"看起来改了但只是换行"的噪音。
+* text=auto eol=lf
+
+# 二进制文件别动
+*.png binary
+*.jpg binary
+*.docx binary
+*.xlsx binary
+*.pdf binary
