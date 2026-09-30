@@ -59,7 +59,7 @@ python tools/check_project.py --dir . --level L2 --quiet    # 结构体检：28 
 
 ## PR 期望
 
-- 多久会有人回：**7 天内至少有人看一眼**（与 `SECURITY.md` 的「确认收到 7 天内」是同一条时限）。节奏见下面「响应节奏」。
+- 多久会有人回：**尽力而为，不承诺时限**（一个人维护，`SECURITY.md` 用的是同一句口径）。想推进得快一点，就把上下文一次写全：判据、复现步骤、影响面——这样一轮就能处理完。
 - 要不要先开 issue：**改技能正文、改判据、加技能或删技能，先开 issue 说清为什么**——这类改动会进入所有使用者的提示词。错别字、文档修正、补一条术语，可以直接提 PR。
 - PR 正文按 `.github/PULL_REQUEST_TEMPLATE.md` 填（平台会自动带出来，结构就是 `templates/pr.md` 的四问）：改了什么 / 为什么 / 怎么验证 / 风险与回滚。第四条不许只写「无风险」三个字。
 - 模板开头的自查清单逐条跑过再提：本地跑过一遍，能省一轮等 CI 的时间；贴输出片段比打勾有用。
@@ -67,7 +67,7 @@ python tools/check_project.py --dir . --level L2 --quiet    # 结构体检：28 
 
 ## 响应节奏
 
-- **一周一次集中处理**：PR 与 issue 一周内至少看一次；收到确认不超过 7 天（与 `SECURITY.md` 一致）。
+- **看到就处理，不承诺频率**：PR 与 issue 会看，但不保证「一周内」——理由与 `SECURITY.md` 一样：一个人维护，承诺频率等于给自己挖坑。
 - **同时只做一张票**：一个人维护，`frontier` 上同时开工的票控制在 1 张，避免半成品堆着。
 - **每月一次依赖与 Actions 升级**：`.github/dependabot.yml` 每月提一次 `github-actions` 的版本升级，进来先打 `needs-triage`（本仓库零第三方依赖，实际只会提 Actions 的版本）。
 - **发版认 tag，不跟 main**（`D-10`）：升级到最新 tag，破坏性变更写在 `CHANGELOG.md` 的 Changed 段首行。
@@ -80,5 +80,6 @@ python tools/check_project.py --dir . --level L2 --quiet    # 结构体检：28 
 - **没有发布过，自动发布也还没跑过一次，远端也还没接。** `git remote -v` 与 `git tag` 现在都是空的；`.github/workflows/release.yml` 写好了（tag 触发、产物带 `sha256`），但一次都没跑过。第一次发版是票据 `06-first-release`，而且**发布动作由人做**，代理不代发（见 `AGENTS.md` 的权限边界）。
 - **英文版正文还没做。** `skills/*/SKILL.md` 只有中文正文，英文只覆盖 `description` 末尾的 `keywords:`——够触发，不够读（`D-07`）。`D-11` 是待定项，期限 v0.2.0，到期未定就默认不做。
 - **S5 模板接缝还没有契约测试。** `templates/*` 目前只有一个调用方（技能正文），按 `docs/architecture.md` 的规矩「一个适配器是假想的接缝，两个才是真的」还不算真接缝。改了模板，没有任何测试会变红，只能人肉比对结构。同理，`S4`（`SKILL.md` 的 frontmatter）与技能正文本身也没有测试——技能写得对不对，靠人读。
-- **分支保护还没配，CI 还没在真实 PR 上跑过。** 工作流在 `.github/workflows/ci.yml`，但「失败挡住合并」要在平台上配分支保护，这一下只能由仓库所有者亲手做（票据 `03-ci-blocks-merge` 记着）。远端接上之前，CI 一次都没跑过。
+- **分支保护还没配——卡在令牌权限上，不是卡在套餐上。** 仓库已公开（公开仓库的分支保护是免费的），但配置它需要维护者令牌带 `Administration: Write`，当前令牌只有 Contents 与 Actions。三条规则写在 `docs/release-checklist.md` 里，配好之后「CI 挡住合并」才成立；在那之前由维护者手工看（票据 `03-ci-blocks-merge` 记着）。
+- **CI 已在真实 PR 上跑过**：Dependabot 提的三个 Actions 升级 PR 就是真人真事——它们在 main 上跑绿之前，先红过五次。
 - **体检器查不了的那部分一直要靠人。** 测试是不是真挂在接缝上、文档是不是你要的、产品验收、陌生人 30 分钟测试、CI 是否真挡住了合并——`tools/check_project.py` 只查 28 条结构判据，这五件它查不了。
