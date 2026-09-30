@@ -12,7 +12,7 @@
 走私密渠道：
 
 - 邮箱：**`2055604701@qq.com`** ｜ 维护者在看的地址，收到会回。
-- 平台私密报告入口：仓库页 **Security → Report a vulnerability** ｜ 远端接上 GitHub 之后可用（仓库地址见 `git remote -v`；本仓库计划托管在 `github.com/naki-yami/idea2oss`）。
+- 平台私密报告入口：仓库页 **Security → Report a vulnerability** ｜ 仓库已托管在 GitHub，这条路现在就能用（仓库地址见 `git remote -v`）。
 - 两条都不可用时：用 `git log` 的提交者或 `LICENSE` 里的维护者署名找到维护者本人私下联系，**不要退回到公开 issue 贴细节**。
 
 普通 bug（不是安全问题的）走正常入口：本地 markdown tracker 见 `docs/agents/issue-tracker.md`，报告格式照 `.github/ISSUE_TEMPLATE/bug.md` 或 `templates/issue-bug.md`。
@@ -20,7 +20,7 @@
 本仓库里值得报的东西（不是只有「能远程执行代码」才算安全漏洞）：
 
 - 技能正文里出现诱导代理执行危险动作的指令：越权改文件、把内容外传、跳过判据、替你签字；
-- `tools/` 里四个脚本能被输入路径带出仓库边界（任意写、任意删、读到仓库外的文件）；
+- `tools/` 里五个脚本能被输入路径带出仓库边界（任意写、任意删、读到仓库外的文件）；
 - 仓库里混进了真实密钥、真实用户数据或私有仓库的内容；
 - 门面文件（`README.md`、`CONTRIBUTING.md`）里的安装命令会把照做的人导向非本项目的东西。
 
@@ -37,7 +37,7 @@
 
 | 版本 | 是否修复安全问题 |
 |---|---|
-| 最新发布版本（tag） | 修。本仓库目前还没有 tag（`git tag` 为空），第一个 tag 由票据 `06-first-release` 打出来之前，按 `main` 的最新提交处理 |
+| 最新发布版本（tag） | 修。当前最新 tag 是 `v0.1.0`（`git tag` 可验），之后的版本同样按这一行处理 |
 | `main` 上的未发布提交 | 尽力修，不承诺。升级一律认 tag，不跟 main（`D-10`） |
 | 更早的版本 | 不修。请先升到最新 tag 再看问题还在不在 |
 | 你拷走改过的副本 | 不在支持范围。要在本仓库用最新版本复现，或按 `templates/issue-bug.md` 给出最小复现 |
