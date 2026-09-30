@@ -33,7 +33,7 @@
    1. **Current state**: which step, which ticket is half done.
    2. **Done**: **results only, not process** (process lives in the diff and the tickets).
    3. **Not done and next**: the next session's first action, **down to file and function**.
-   4. **Key paths**: **paths only, never content** — spec `.scratch/<feature>/spec.md`, tickets `.scratch/<feature>/issues/NN-*.md`, decisions `docs/adr/NNNN-*.md`, ledger `docs/decisions.md`.
+   4. **Key paths**: **paths only, never content** — spec `.scratch/<feature>/spec.md`, tickets `.scratch/<feature>/issues/NN-*.md`, decisions `docs/adr/NNNN-*.md`, decision ledger `docs/decisions.md`.
    5. **Suggested skills**: which skills the next agent should call, in order; where a skill is missing, write the matching manual fallback path.
    6. **Known traps**: pitfalls hit and what they taught; write "none" if there are none.
 4. **Store the handoff document in the OS temp directory** — not the workspace, not the repo, not committed; if it shows up in `git status` it's in the wrong place. The reason: a handoff document is the easiest thing to paste somewhere else, and inside the repo it stays forever and forks from the docs.
