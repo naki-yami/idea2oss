@@ -57,8 +57,14 @@ python tools/install.py --link
 |---|---|
 | 这是什么、怎么装 | 本文件 |
 | 怎么用、出问题怎么办、三条完整走法 | [GUIDE.md](GUIDE.md) |
+| 接手这个仓库该按什么顺序读 | [docs/onboarding.md](docs/onboarding.md) |
 | 某个技能到底干什么 | `skills/<name>/SKILL.md` |
 | 黑话是什么意思 | [CONTEXT.md](CONTEXT.md) |
+| 模块边界与接缝（S1–S5） | [docs/architecture.md](docs/architecture.md) |
+| 为什么当初这么定 | [docs/decisions.md](docs/decisions.md) + [docs/adr/](docs/adr/) |
+| 这个项目为谁做、什么条件下放弃 | [docs/agents/brief.md](docs/agents/brief.md) |
+| 下一步要做什么 | [.scratch/engineering-v0.1.0/issues/](.scratch/engineering-v0.1.0/issues/) |
+| 怎么参与 | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | 改了什么 | [CHANGELOG.md](CHANGELOG.md) |
 
 ## 结构体检：把判据变成命令
@@ -80,19 +86,31 @@ python tools/check_project.py --dir . --json        # 给 CI 用
 
 ```
 idea2oss/
-├── README.md              门面（本文件，按手册附录 B1 的七段写）
+├── README.md              门面（本文件）
 ├── GUIDE.md               介绍与使用手册（装、用、三条走法、排错、定制）
-├── CONTEXT.md             术语表：这个仓库里的黑话是什么意思
-├── CHANGELOG.md           Keep a Changelog
+├── CONTEXT.md             术语表（唯一权威）
+├── CHANGELOG.md           Keep a Changelog（此刻还没有 release，内容都在 Unreleased）
+├── CONTRIBUTING.md        怎么参与
+├── SECURITY.md            漏洞私密报告渠道与响应时限
+├── CODE_OF_CONDUCT.md     Contributor Covenant v2.1
+├── AGENTS.md              代理入口：技能索引 + 三条铁律口令 + 权限边界
 ├── LICENSE                MIT
-├── skills/
-│   └── <name>/SKILL.md    14 个技能，每个都能独立使用
-├── templates/             35 份模板与索引（手册附录 A/B；`AGENTS.md.tpl` 复制到项目根时改名为 AGENTS.md）
-├── .scratch/              过程档案：`skill-contract.md`（技能编写契约，改技能或加技能前先读它）
-└── tools/
-    ├── install.py         安装到 DSH 技能目录（复制或联接）
-    ├── validate_skills.py 校验：frontmatter、八节骨架、交叉引用、模板存在性
-    └── dump_templates.py  从生成器重新导出 templates/
+├── pyproject.toml         包元数据（license = MIT，零第三方依赖）
+├── .gitattributes         仓库统一 LF
+├── skills/<name>/SKILL.md 14 个技能，每个都能独立使用
+├── templates/             35 份模板与索引
+├── docs/                  知识层（接手者从这里进）
+│   ├── onboarding.md      30 分钟接手路径
+│   ├── architecture.md    模块与接缝清单 S1–S5
+│   ├── decisions.md       决议台账 D-01…D-12
+│   ├── adr/               0001–0003 三条架构决策
+│   └── agents/            brief / issue-tracker / triage-labels / domain
+├── .scratch/              过程层
+│   ├── skill-contract.md  技能编写契约
+│   └── engineering-v0.1.0/  本次的 spec 与票据图
+├── tests/                 挂在 S1 / S2 / S3 三个接缝上的 unittest
+├── tools/                 四个命令行入口（install / validate / check / dump）
+└── .github/               CI、release、PR 与 issue 模板、CODEOWNERS、dependabot
 ```
 
 ## 兼容性
@@ -106,15 +124,18 @@ idea2oss/
 - **不是又一个提示词集合。** 技能只写判据和动作，不写"你是一位资深工程师"这类角色扮演。它管流程，不管你的技术栈。
 - **不替你选技术栈、不替你选许可证、不替你签字。** 法务判断、隐私声明、对外承诺这三类必须人来做。
 - **不保证代理会自动触发。** 描述里做了中英双语关键词，但复杂流程建议点名调用。
+- **不保证项目自动合规。** 技能只提出判据，真正拦住你的是 `tools/check_project.py` 与 CI——判据不落成命令，就只是纸面话术。
 - **判据不能省。** 文档可以降级成随手记，判据不行——这是整套东西唯一不能省的部分。
 
 ## 现状与路线
 
-- 现状：v0.1.0，九步全覆盖，可独立使用。手册版本对应 mattpocock/skills v1.2.3 的描述（该技能集与本套无依赖关系）。
-- 路线：技能集升级时先复核手册第二章与第十五章；本套的九步骨架与判据通常不受影响。
+- 现状：v0.1.0 开发中。技能集九步全覆盖、可独立使用；仓库自身正在按本集的流程补成一个**可接手、可发布、可验证**的完整项目（第 0–8 步的产物见 `docs/` 与 `.scratch/engineering-v0.1.0/`）。
+- 自评口径：`python tools/check_project.py --dir . --quiet`。分数与验收记录写在票据里，不写在这里——README 里的数字会过期。
+- 徽章：等首次 push 到远端、CI 真跑起来之后再挂。挂一个指向不存在仓库的 CI 徽章，比不挂更伤。
+- 路线：先发 v0.1.0（票据 `06-first-release`），再按 `docs/decisions.md` 的 `D-11` 决定英文版正文做不做。
 
 ## 许可与贡献
 
-- 许可：[MIT](LICENSE)
-- 贡献：提 issue 说明你卡在哪一步、哪条判据不可检查；改技能请先过 `python tools/validate_skills.py`
-- 维护节奏：每次手册出新版本时同步一次（V3 之后若有 V4，先比对九步骨架与判据表）
+- 许可：[MIT](LICENSE)——三处必须一致：`LICENSE` 全文 / `pyproject.toml` 的 `license` 字段 / 本段落。
+- 贡献：[CONTRIBUTING.md](CONTRIBUTING.md)。改技能或工具后，先过这两条命令：`python tools/validate_skills.py`、`python -m unittest discover -s tests`。
+- 维护节奏：见 `CONTRIBUTING.md` 的「响应节奏」一节。

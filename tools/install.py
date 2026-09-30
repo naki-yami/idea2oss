@@ -25,7 +25,7 @@ import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = os.path.join(REPO, "skills")
-DEFAULT_TARGET = r"D:\dsh"
+DEFAULT_TARGET = None      # None = 当前工作目录。不硬编码某台机器的路径，否则别人 clone 下来会装到不存在的地方
 
 
 def skill_names():
@@ -39,12 +39,22 @@ def dest_root(target):
 
 
 def is_junction(path):
+    """目录联接（junction）判定。
+
+    首选 st_reparse_tag：不依赖系统语言，也不会被 cmd 的本地化输出骗到
+    （中文 Windows 上 `dir /AL` 不打印字面的 <JUNCTION>，旧写法会误判成"副本"，
+    进而让 --uninstall 不敢删、--list 标错）。
+    """
     try:
-        out = subprocess.run(["cmd", "/c", "dir", "/AL", os.path.dirname(path)],
-                             capture_output=True, text=True, encoding="gbk", errors="replace")
-        return os.path.basename(path) in (out.stdout or "") and "<JUNCTION>" in (out.stdout or "")
-    except Exception:
+        st = os.lstat(path)
+        tag = getattr(st, "st_reparse_tag", 0)
+        if tag:
+            return tag == getattr(os.stat(path), "IO_REPARSE_TAG_MOUNT_POINT", 0xA0000003)
+        if os.path.islink(path):
+            return True
+    except OSError:
         return False
+    return False
 
 
 def make_junction(src, dst):

@@ -75,6 +75,11 @@ def main() -> int:
     skills_dir = os.path.join(root, "skills")
     templates_dir = os.path.join(root, "templates")
 
+    if not os.path.isdir(skills_dir):
+        print(f"目录不存在：{skills_dir}")
+        print("这不是技能集仓库，或者 --root 指错了地方。")
+        return 1
+
     names = sorted(d for d in os.listdir(skills_dir)
                    if os.path.isdir(os.path.join(skills_dir, d)))
     errors, warns = [], []
@@ -99,8 +104,11 @@ def main() -> int:
                 errors.append(f"{rel}: frontmatter 缺 {field}")
         if fm.get("name") != name:
             errors.append(f"{rel}: name={fm.get('name')!r} 与目录名不符")
-        if "keywords:" not in fm.get("description", ""):
-            warns.append(f"{rel}: description 里没有 keywords:")
+        # 注意：keywords 可能落在 description 的续行上（YAML 折行），
+        # 所以查整块 frontmatter，而不是只看 description 的值。
+        fm_text = "\n".join(f"{k}: {v}" for k, v in fm.items())
+        if "keywords:" not in fm_text:
+            warns.append(f"{rel}: frontmatter 里没有 keywords:")
         if len(fm.get("description", "")) > 400:
             warns.append(f"{rel}: description 过长（{len(fm['description'])} 字）")
 
@@ -135,7 +143,10 @@ def main() -> int:
             warns.append(f"skills/{name}/SKILL.md: 没有被任何技能引用（孤儿）")
 
     print(f"技能数：{len(names)}  ->  {', '.join(names)}")
-    print(f"模板数：{len([f for f in os.listdir(templates_dir) if os.path.isfile(os.path.join(templates_dir, f))])}")
+    tpl_count = (len([f for f in os.listdir(templates_dir)
+                      if os.path.isfile(os.path.join(templates_dir, f))])
+                 if os.path.isdir(templates_dir) else 0)
+    print(f"模板数：{tpl_count}")
     print("-" * 60)
     for w in warns:
         print("  warn  " + w)

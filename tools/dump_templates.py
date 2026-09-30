@@ -1,11 +1,25 @@
 # -*- coding: utf-8 -*-
-"""从 scaffold_project.py 里导出模板到 idea2oss/templates/（单一事实来源，避免两处维护）。"""
+"""从外部生成器（scaffold_project.py）里导出模板到本仓库的 templates/。
+
+用法：
+    python tools/dump_templates.py                      # 写回本仓库 templates/
+    python tools/dump_templates.py --out <目录>          # 写到别处（非破坏性重放，用来验证 D-08）
+    python tools/dump_templates.py --scaffold <路径>     # 指定生成器位置
+
+为什么要这个脚本：模板的事实来源是生成器，`templates/` 只是导出物（决议 D-08）。
+两处手写件——`INDEX.md`（索引）与 `manual-review.md`（附录 A6）——不在导出范围内，重放时要排除。
+
+注意：生成器不在本仓库内（它是流程手册的工具链）。没装生成器时本脚本会明确报错，
+而不是写出一堆空文件。
+"""
+import argparse
 import importlib.util
 import os
 import sys
 
-SCAFFOLD = r"C:\Users\Administrator\Desktop\新建文件夹\scaffold_project.py"
-OUT = r"D:\dsh\idea2oss\templates"
+DEFAULT_SCAFFOLD = r"C:\Users\Administrator\Desktop\新建文件夹\scaffold_project.py"
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HANDWRITTEN = ("INDEX.md", "manual-review.md")   # 不是导出物，见上面说明
 
 MAP = [
     ("readme_l0", "readme-l0.md"),
@@ -27,7 +41,7 @@ MAP = [
     ("security", "security.md"),
     ("coc", "code-of-conduct.md"),
     ("changelog", "changelog.md"),
-    ("agents_md", "AGENTS.md"),
+    ("agents_md", "AGENTS.md.tpl"),      # 后缀是有意的：模板不能被运行时当成生效的 AGENTS.md
     ("issue_tracker", "issue-tracker.md"),
     ("triage_labels", "triage-labels.md"),
     ("domain", "domain.md"),
@@ -55,15 +69,27 @@ def load_scaffold(path):
     return mod
 
 
-def main():
-    mod = load_scaffold(SCAFFOLD)
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="从生成器重放 templates/")
+    ap.add_argument("--out", default=os.path.join(REPO, "templates"),
+                    help="导出目录，默认写回本仓库 templates/")
+    ap.add_argument("--scaffold", default=DEFAULT_SCAFFOLD,
+                    help="生成器路径（事实来源，不在本仓库内）")
+    args = ap.parse_args(argv)
+
+    if not os.path.exists(args.scaffold):
+        print(f"找不到生成器：{args.scaffold}", file=sys.stderr)
+        print("用 --scaffold <路径> 指定，或手工维护 templates/（重放不是使用模板的前提）。", file=sys.stderr)
+        return 2
+
+    mod = load_scaffold(args.scaffold)
     T, META, BANNER = mod.T, mod.META, mod.BANNER
-    os.makedirs(OUT, exist_ok=True)
+    os.makedirs(args.out, exist_ok=True)
     written = 0
     for key, fname in MAP:
         text = T.get(key)
         if text is None:
-            print(f"  ! 缺模板: {key}")
+            print(f"  ! 生成器里缺模板: {key}")
             continue
         body = text.format(name="<项目名>", feature="<feature>")
         step, crit = META.get(key, ("", ""))
@@ -71,11 +97,12 @@ def main():
             continue
         banner = BANNER.format(step=step, crit=crit) if step else HEADER.strip()
         content = HEADER + banner + "\n" + body if step else HEADER + body
-        with open(os.path.join(OUT, fname), "w", encoding="utf-8", newline="\n") as fh:
+        with open(os.path.join(args.out, fname), "w", encoding="utf-8", newline="\n") as fh:
             fh.write(content)
         written += 1
-        print(f"  + templates/{fname}")
-    print(f"共写出 {written} 份模板 -> {OUT}")
+        print(f"  + {fname}")
+    print(f"共写出 {written} 份 -> {args.out}")
+    print(f"手写件（不导出，重放时请排除）：{', '.join(HANDWRITTEN)}")
     return 0
 
 

@@ -60,10 +60,18 @@ NEED = {
 results = []
 
 
+CURRENT_LEVEL = "L2"
+
+
 def add(cid, title, status, detail="", fix="", level="L2"):
-    """status: OK / MISS / WARN / NA"""
+    """status: OK / MISS / WARN / NA
+
+    level      = 这一项在哪个档位被定义（固定值，不随扫描档位变）
+    required   = 按本次扫描的档位，这一项是否是强制项（这才是你要判断的那个字段）
+    """
     results.append({"id": cid, "title": title, "status": status,
-                    "detail": detail, "fix": fix, "level": level})
+                    "detail": detail, "fix": fix, "level": level,
+                    "required": CURRENT_LEVEL in NEED.get(cid, {"L2"})})
 
 
 def read(path, limit=200_000):
@@ -105,6 +113,8 @@ def main() -> int:
 
     root = os.path.abspath(args.dir)
     lvl = args.level
+    global CURRENT_LEVEL
+    CURRENT_LEVEL = lvl
     if not os.path.isdir(root):
         print(f"目录不存在：{root}")
         return 2

@@ -76,9 +76,9 @@ brief.md   .gitignore   CONTEXT.md    spec.md       接缝清单+票据  代码+
 ### 2.2 安装
 
 ```powershell
-cd D:\dsh\idea2oss
+cd D:\idea2oss          # 换成你自己克隆的路径
 
-# 装到 D:\dsh 的工作区技能目录（默认）
+# 装到「当前目录」的技能目录（<当前目录>\.dsh\skills）
 python tools/install.py
 
 # 装到别的项目
@@ -93,7 +93,7 @@ python tools/install.py --dry-run
 
 | 参数 | 作用 |
 |---|---|
-| `--target <目录>` | 装到 `<目录>\.dsh\skills`，默认 `D:\dsh` |
+| `--target <目录>` | 装到 `<目录>\.dsh\skills`；**默认是当前工作目录** |
 | `--link` | 建 Windows 目录联接而不是复制；适合开发这套技能本身 |
 | `--force` | 覆盖已存在的技能（默认跳过，不碰你已有的东西） |
 | `--list` | 列出目标目录里已装的技能，并标出是「联接」还是「副本」 |

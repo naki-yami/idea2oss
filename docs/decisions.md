@@ -13,7 +13,7 @@
 | D-05 | 约束 | 结构判据里机器能判断的部分，必须有一条命令能验证，且失败时退出码非 0 | `check_project.py --json` 退出码 1/0 |
 | D-06 | 默认 | `tools/` 只用 Python 标准库，不引入第三方依赖 | 干净环境（无 site-packages）能跑通全部工具；`pyproject.toml` 无 `dependencies` |
 | D-07 | 默认 | 技能正文中文，`description` 末尾带英文 `keywords:`，保证中英环境都能触发 | `validate_skills.py` 的 keywords 检查无警告 |
-| D-08 | 默认 | 模板的事实来源是生成器，`templates/` 是导出物 | `python tools/dump_templates.py` 可重放，导出后 git 无差异 |
+| D-08 | 默认 | 模板的事实来源是生成器，`templates/` 是导出物；两份手写件（`INDEX.md`、`manual-review.md`）不在此列 | `python tools/dump_templates.py --out <临时目录>` 重放：33 份逐字节一致、无多余文件；生成器缺失时退出码 2 且不写盘 |
 | D-09 | 约束 | 交接文档（handoff）不进仓库：写到系统临时目录 | `check_project.py` 的「交接文档没进仓库」项通过 |
 | D-10 | 约束 | 发布用语义化版本，升级认 tag 不跟 main；破坏性变更写在 CHANGELOG 的 Changed 段首行 | 仓库有 `v0.1.0` tag；CHANGELOG 有对应段落 |
 | D-11 | 待定 | 是否提供英文版技能正文（`skills/*/SKILL.md` 的英文平行版本） | **期限：v0.2.0 发布前定**；到期未定则默认不做，并把本条改成「默认：不做」 |
