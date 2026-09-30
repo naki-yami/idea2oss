@@ -148,6 +148,39 @@ SKILL_TEMPLATE = """# 测试技能
 """
 
 
+EN_COMPANION = """# good-skill
+
+> English companion for the test fixture（D-11：SKILL.md 是中文，这一份给非中文使用者）。
+
+## When to use / when not to
+- Use it in tests.
+
+## Inputs
+- A temporary directory.
+
+## Actions
+1. Write the fixture.
+
+## Outputs
+- One SKILL.md.
+
+## Done criteria
+- [ ] The fixture passes the validator.
+- [ ] Removing one section makes it fail.
+
+## Manual fallback
+- Write the file by hand.
+
+## Next step
+→ call `good-skill`.
+
+## Anti-patterns
+| Anti-pattern | Why it is wrong | Do this instead |
+|---|---|---|
+| Skipping the companion | Nothing checks the English side | Always ship references/en.md |
+"""
+
+
 def write_skill_set(root, name="good-skill", body=SKILL_TEMPLATE, front_name=None):
     """在 root 下造一个最小技能集：skills/<name>/SKILL.md + templates/ 目录。
 
@@ -156,6 +189,10 @@ def write_skill_set(root, name="good-skill", body=SKILL_TEMPLATE, front_name=Non
     os.makedirs(os.path.join(root, "templates"), exist_ok=True)
     skill_dir = os.path.join(root, "skills", name)
     os.makedirs(skill_dir, exist_ok=True)
+    refs = os.path.join(skill_dir, "references")
+    os.makedirs(refs, exist_ok=True)
+    with open(os.path.join(refs, "en.md"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(EN_COMPANION)
     real_name = front_name if front_name is not None else name
     text = (
         "---\n"
@@ -222,6 +259,43 @@ class S1ValidateSkills(unittest.TestCase):
             code, out = run_tool(os.path.join(TOOLS, "validate_skills.py"), "--root", tmp)
             self.assertEqual(code, 1, f"引用不存在的技能竟然通过了：\n{out}")
             self.assertIn("调用了不存在的技能", out, out)
+
+    def test_missing_english_companion_fails(self):
+        """D-11：缺 references/en.md → 退出码 1，且错误文本点出英文伴随件。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            write_skill_set(tmp)
+            os.remove(os.path.join(tmp, "skills", "good-skill", "references", "en.md"))
+            code, out = run_tool(os.path.join(TOOLS, "validate_skills.py"), "--root", tmp)
+            self.assertEqual(code, 1, f"缺英文伴随件竟然通过了：\n{out}")
+            self.assertIn("英文伴随件", out, out)
+
+    def test_english_companion_missing_section_fails(self):
+        """英文伴随件缺一节 → 退出码 1（英文侧也八节齐全，才算 D-11 成立）。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            write_skill_set(tmp)
+            path = os.path.join(tmp, "skills", "good-skill", "references", "en.md")
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read()
+            # 注意：不能只把标题改名成「## Anti-patterns (renamed…)」——那仍是子串命中，
+            # 校验器查不出来（第一版测试就这么写的，红了才发现）。要整行删掉。
+            with open(path, "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(text.replace("## Anti-patterns\n", ""))
+            code, out = run_tool(os.path.join(TOOLS, "validate_skills.py"), "--root", tmp)
+            self.assertEqual(code, 1, f"英文伴随件缺节竟然通过了：\n{out}")
+            self.assertIn("缺小节", out, out)
+
+    def test_inconsistent_english_term_fails(self):
+        """D-11：英文术语必须统一——把口令写成「go up one level」要红。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            write_skill_set(tmp)
+            path = os.path.join(tmp, "skills", "good-skill", "references", "en.md")
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read()
+            with open(path, "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(text.replace("## Next step", "Go up one level\n\n## Next step"))
+            code, out = run_tool(os.path.join(TOOLS, "validate_skills.py"), "--root", tmp)
+            self.assertEqual(code, 1, f"术语不统一竟然通过了：\n{out}")
+            self.assertIn("术语不统一", out, out)
 
     def test_dot_only_template_reference_fails(self):
         """`templates/...` 这种纯点号引用必须判错——**两个平台都要判错**。

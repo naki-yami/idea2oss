@@ -120,6 +120,8 @@ idea2oss/
 
 技能采用通用的 Agent Skills 格式（`SKILL.md` + YAML frontmatter：`name` / `description` / `whenToUse`）。装到别的运行时里，把 `skills/<name>/` 整个目录拷进它的技能目录即可；不支持 `whenToUse` 的运行时忽略该字段即可正常工作。
 
+**不读中文也能用**：每个技能附一份 `skills/<name>/references/en.md` 英文伴随件（判据与动作两节的英文版，`D-11`）。`SKILL.md` 正文保持中文——那是源手册的语言；英文件与它八节同构，由 `python tools/validate_skills.py` 一起校验。
+
 如果你已经装了同类技能（例如拷问、TDD、代码评审、调研），每个技能会告诉你"优先用哪个"，没有也能按内置的手工路径走完。
 
 ## 限制与不做什么

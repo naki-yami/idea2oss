@@ -16,7 +16,7 @@
 | D-08 | 默认 | 模板的事实来源是生成器，`templates/` 是导出物；两份手写件（`INDEX.md`、`manual-review.md`）不在此列 | `python tools/dump_templates.py --out <临时目录>` 重放：33 份逐字节一致、无多余文件；生成器缺失时退出码 2 且不写盘 |
 | D-09 | 约束 | 交接文档（handoff）不进仓库：写到系统临时目录 | `check_project.py` 的「交接文档没进仓库」项通过 |
 | D-10 | 约束 | 发布用语义化版本，升级认 tag 不跟 main；破坏性变更写在 CHANGELOG 的 Changed 段首行 | 仓库有 `v0.1.0` tag；CHANGELOG 有对应段落 |
-| D-11 | 待定 | 是否提供英文版技能正文（`skills/*/SKILL.md` 的英文平行版本） | **期限：v0.2.0 发布前定**；到期未定则默认不做，并把本条改成「默认：不做」 |
+| D-11 | 默认 | **提供英文版**：每个技能附一份 `references/en.md` 英文伴随件（按 ADR-0002 的口径——译判据与动作，不译全文）；`skills/*/SKILL.md` 正文仍为中文 | `python tools/validate_skills.py` 报 0 错：14 个 `references/en.md` 存在、八节齐全；另有 2 条回归测试钉住这条判据 |
 | D-12 | 默认 | 依赖许可检查放进 CI，任何 GPL / AGPL / 未知许可依赖单独评估 | CI 里有许可检查步骤，且失败会挡住合并 |
 | D-13 | 默认 | README 必须写明对 `mattpocock/skills` 的致谢，并写清"参考了什么、没复制什么"的边界；**不照搬其 MIT 全文**（本项目没有分发它的代码或文本，无此义务；将来若真的复制了内容，再另开票处理） | README「致谢」段；来源核实记录：GitHub API `license.spdx_id = MIT`、LICENSE 原文 `Copyright (c) 2026 Matt Pocock`、最新 tag 为 `v1.2.3` |
 

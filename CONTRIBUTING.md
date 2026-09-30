@@ -39,6 +39,8 @@ python tools/check_project.py --dir . --level L2 --quiet    # 结构体检：28 
 
 改 `skills/<name>/SKILL.md` 之前先读 `.scratch/skill-contract.md`（完整编写契约），基准样板是 `skills/decision-ledger/SKILL.md`。
 
+**别忘了英文伴随件（`D-11`）**：每个技能还要有 `references/en.md`，八节齐全、与中文那份一一对应；`python tools/validate_skills.py` 两边都查，缺一节就红。
+
 | 规矩 | 为什么 | `validate_skills.py` 怎么查 |
 |---|---|---|
 | 八节骨架不改名、不合并、不调序 | 标题进了代理读到的提示词，改名等于改行为（`D-02`） | 八节检查全过 |

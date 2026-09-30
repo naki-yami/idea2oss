@@ -12,6 +12,7 @@
 - `tools/check_licenses.py`（接缝 `S6`）：依赖许可门禁，**标准库实现**（符合 `D-06`），许可按 `License-Expression` → Trove classifiers → 旧 `License` 字段三级回退解析；`--report` / `--json` / `--ignore`
 - **分支保护**：`main` 必须走 PR、必须 `test (3.9)` 与 `test (3.13)` 通过且分支最新、禁 force push、禁删除（公开仓库免费；`enforce_admins: false` 是刻意留的热修通道）
 - 测试从 12 条增到 20 条：新增 `S6` 许可门禁 5 条、纯点号模板引用回归、`install.py` 默认目标回归、忽略名单
+- **英文伴随件（`D-11`）**：14 个技能各附 `skills/<name>/references/en.md`（判据与动作的英文版，八节与中文同构）；`validate_skills.py` 校验其存在与完整性，另加两条回归测试
 
 ### Fixed
 
