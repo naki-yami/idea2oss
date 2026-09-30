@@ -14,15 +14,27 @@
 - [x] `CHANGELOG.md` 的 `[Unreleased]` 已切成 `[0.1.0] - 2026-09-30`
 - [x] 本地 tag `v0.1.0` 已打（**未推**——推 tag 是发版动作，由维护者做）
 - [x] 陌生人测试（机械版）：干净克隆 → 按 README 装到目标项目 → 三条门禁全过，且 clone 保持干净
-- [x] 占位全部清除：`example.com` 邮箱 ×2、CODEOWNERS 占位 ×5
+- [x] 占位全部清除：`example.com` 邮箱 ×2、CODEOWNERS 占位 ×5（复查：0 处真实残留；本行出现的 `example.com` 只是在说明删了什么）
+- [x] **默认分支名与 CI 触发条件一致**：分支从 `master` 改名为 `main`——`.github/workflows/ci.yml` 监听的是 `branches: [main]`，不改名的话推上去 CI 一次都不会跑。这类"名字对不上"的坑只有在推之前查一遍才发现得了。
 
 ## 还差三件
 
 | # | 事项 | 谁 | 怎么做 | 判据 |
 |---|---|---|---|---|
-| 1 | 推上远端，让 CI 真跑一次 | 维护者（命令可代跑） | `git remote add origin git@github.com:naki-yami/idea2oss.git` → `git push -u origin main` → `git push origin v0.1.0` | Actions 页出现一次绿色运行 |
+| 1 | 推上远端，让 CI 真跑一次 | 维护者（命令可代跑） | 见下面的三条命令 | Actions 页出现一次绿色运行 |
 | 2 | 用一个故意失败的 PR 验证 CI 挡合并 | 维护者 | 建分支改坏一个技能（例如删掉某节标题）→ 提 PR | CI 变红，且合并被挡住 |
 | 3 | 配分支保护 | 维护者（平台侧） | Settings → Branches，三条规则见下 | 规则已保存并对 `main` 生效 |
+
+### 推上远端的三条命令
+
+```powershell
+cd D:\idea2oss
+git remote add origin git@github.com:naki-yami/idea2oss.git   # 用 HTTPS 就把这行换成 https 地址
+git push -u origin main          # 默认分支已改为 main（与 ci.yml 的 branches: [main] 一致）
+git push origin v0.1.0           # 推 tag 才算发版；没推之前，这个版本只在你机器上
+```
+
+推完去 Actions 页确认 `ci` 跑过一次；如果没跑，先查分支名和触发条件是否对得上。
 
 ### 分支保护三条（写在平台上，不写在文档里）
 
